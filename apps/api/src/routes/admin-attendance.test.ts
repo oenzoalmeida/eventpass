@@ -154,3 +154,29 @@ describe('relatórios', () => {
     expect(res.statusCode).toBe(401);
   });
 });
+
+it('permite cancelar inscrição quando o evento voltou a rascunho', async () => {
+  const event = await createPublishedEvent(app, cookie);
+  const registration = await register(app, event.slug, 'Pessoa Rascunho', 'draft@exemplo.test');
+  expect(registration.statusCode).toBe(201);
+  await app.inject({
+    method: 'POST',
+    url: '/api/admin/events/' + event.id + '/status',
+    headers: { cookie },
+    payload: { status: 'draft' },
+  });
+  const list = await app.inject({
+    url: '/api/admin/events/' + event.id + '/registrations',
+    headers: { cookie },
+  });
+  const id = list.json().registrations[0].id;
+  expect(
+    (
+      await app.inject({
+        method: 'POST',
+        url: '/api/admin/events/' + event.id + '/registrations/' + id + '/cancel',
+        headers: { cookie },
+      })
+    ).statusCode,
+  ).toBe(204);
+});

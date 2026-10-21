@@ -73,13 +73,7 @@ export async function adminAttendanceRoutes(app: FastifyInstance) {
     return await transaction(db, async () => {
       await db.query('SELECT id FROM events WHERE id = $1 FOR UPDATE', [event!.id]);
       const current = await getEventById(db, event!.id);
-      if (!current || current.status === 'draft')
-        return sendError(
-          reply,
-          409,
-          'event_not_published',
-          'Evento indisponível para esta operação.',
-        );
+      if (!current) return sendError(reply, 404, 'not_found', 'Evento não encontrado.');
       const reg = (await db
         .prepare(
           `SELECT r.id, c.id AS checkin_id FROM registrations r

@@ -57,7 +57,7 @@ export async function adminEventRoutes(app: FastifyInstance) {
         }
       ).id,
     );
-    const event = id ? await getEventById(db, id, true) : null;
+    const event = id ? await getEventById(db, id) : null;
     if (!event) return sendError(reply, 404, 'not_found', 'Evento não encontrado.');
     return { event };
   });
@@ -139,12 +139,14 @@ export async function adminEventRoutes(app: FastifyInstance) {
     );
     const parsed = eventStatusInputSchema.safeParse(request.body);
     if (!parsed.success) return sendValidationError(reply, parsed.error);
-    const event = id ? await getEventById(db, id, true) : null;
-    if (!event) return sendError(reply, 404, 'not_found', 'Evento não encontrado.');
-    await db
-      .prepare('UPDATE events SET status = ?, updated_at = ? WHERE id = ?')
-      .run(parsed.data.status, nowIso(), event.id);
-    return { event: await getEventById(db, event.id) };
+    return transaction(db, async () => {
+      const event = id ? await getEventById(db, id, true) : null;
+      if (!event) return sendError(reply, 404, 'not_found', 'Evento não encontrado.');
+      await db
+        .prepare('UPDATE events SET status = ?, updated_at = ? WHERE id = ?')
+        .run(parsed.data.status, nowIso(), event.id);
+      return { event: await getEventById(db, event.id) };
+    });
   });
   app.delete('/api/admin/events/:id', async (request, reply) => {
     const id = parseId(
