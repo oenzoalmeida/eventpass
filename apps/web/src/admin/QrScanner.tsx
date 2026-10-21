@@ -88,8 +88,6 @@ export function QrScanner({ onScan, paused }: { onScan: (value: string) => void;
     <div className="space-y-3">
       {error && <Alert tone="danger" title={error} />}
       <div className="relative aspect-square w-full max-w-sm overflow-hidden rounded-xl border border-border bg-black">
-        {/* Vídeo da câmera sem áudio: não há legenda a oferecer. */}
-        {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
         <video ref={videoRef} className={active ? 'size-full object-cover' : 'hidden'} muted playsInline aria-label="Visualização da câmera" />
         {!active && (
           <div className="flex size-full items-center justify-center p-6 text-center text-sm text-white/80">
