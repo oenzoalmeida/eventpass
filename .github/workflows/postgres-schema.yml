@@ -1,0 +1,63 @@
+name: PostgreSQL schema
+
+on:
+  push:
+    branches: [feat/vercel-neon-migration]
+    paths:
+      - 'apps/api/migrations-postgres/**'
+      - '.github/workflows/postgres-schema.yml'
+  pull_request:
+    paths:
+      - 'apps/api/migrations-postgres/**'
+      - '.github/workflows/postgres-schema.yml'
+
+jobs:
+  schema:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: eventpass
+          POSTGRES_PASSWORD: eventpass_ci_only
+          POSTGRES_DB: eventpass_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U eventpass -d eventpass_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: eventpass
+      PGPASSWORD: eventpass_ci_only
+      PGDATABASE: eventpass_ci
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install PostgreSQL client
+        run: sudo apt-get update -qq && sudo apt-get install -y postgresql-client
+      - name: Apply schema to disposable database
+        run: psql -v ON_ERROR_STOP=1 -f apps/api/migrations-postgres/001_initial.sql
+      - name: Assert schema integrity
+        run: |
+          psql -v ON_ERROR_STOP=1 <<'SQL'
+          DO $$
+          BEGIN
+            IF (SELECT count(*) FROM information_schema.tables WHERE table_schema='public' AND table_name IN ('admins','sessions','events','participants','registrations','checkins','point_entries')) <> 7 THEN
+              RAISE EXCEPTION 'Missing core tables';
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname='participants_email_unique') THEN
+              RAISE EXCEPTION 'Missing case-insensitive participant index';
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname='registrations_event_id_participant_id_key') THEN
+              RAISE EXCEPTION 'Missing registration uniqueness constraint';
+            END IF;
+          END $$;
+          SQL
+      - name: Verify rollback of invalid row
+        run: |
+          if psql -v ON_ERROR_STOP=1 -c "INSERT INTO events (slug,title,starts_at,ends_at,capacity,created_by) VALUES ('invalid','Invalid','2026-10-21T12:00:00Z','2026-10-21T11:00:00Z',0,999)"; then
+            echo 'Invalid event unexpectedly accepted'; exit 1
+          fi
