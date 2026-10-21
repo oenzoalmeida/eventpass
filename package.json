@@ -8,12 +8,12 @@
     "apps/*"
   ],
   "engines": {
-    "node": ">=22.13"
+    "node": "24.x"
   },
   "scripts": {
     "dev": "npm run build -w @eventpass/shared && concurrently -n api,web -c blue,magenta \"npm run dev -w @eventpass/api\" \"npm run dev -w @eventpass/web\"",
     "build": "npm run build -w @eventpass/shared && npm run build -w @eventpass/api && npm run build -w @eventpass/web",
-    "typecheck": "npm run build -w @eventpass/shared && npm run typecheck --workspaces --if-present",
+    "typecheck": "npm run build -w @eventpass/shared && npm run typecheck --workspaces --if-present && tsc -p tsconfig.check.json",
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -21,10 +21,15 @@
     "db:migrate": "npm run build -w @eventpass/shared && npm run db:migrate -w @eventpass/api",
     "admin:create": "npm run build -w @eventpass/shared && npm run admin:create -w @eventpass/api",
     "start": "WEB_DIST=../web/dist NODE_ENV=production npm run start -w @eventpass/api",
-    "db:seed": "npm run build -w @eventpass/shared && npm run db:seed -w @eventpass/api"
+    "db:seed": "npm run build -w @eventpass/shared && npm run db:seed -w @eventpass/api",
+    "db:backup": "npm run build -w @eventpass/shared && npm run db:backup -w @eventpass/api",
+    "db:restore": "npm run build -w @eventpass/shared && npm run db:restore -w @eventpass/api",
+    "db:import-sqlite": "npm run build -w @eventpass/shared && npm run db:import-sqlite -w @eventpass/api",
+    "test:e2e": "playwright test"
   },
   "devDependencies": {
     "@eslint/js": "^9.29.0",
+    "@playwright/test": "^1.64.1",
     "concurrently": "^9.2.0",
     "eslint": "^9.29.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
@@ -32,6 +37,7 @@
     "globals": "^16.2.0",
     "prettier": "^3.6.0",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.35.0"
+    "typescript-eslint": "^8.35.0",
+    "vite": "^8.3.5"
   }
 }

@@ -39,3 +39,8 @@ data/
 .DS_Store
 Thumbs.db
 *.tsbuildinfo
+
+.vercel/
+test-results/
+playwright-report/
+*.epbackup

@@ -1,0 +1,47 @@
+name: Homolog database operations
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        type: choice
+        options: [migrate, backup]
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: eventpass-homolog-database
+  cancel-in-progress: false
+jobs:
+  operation:
+    if: github.ref == 'refs/heads/feat/vercel-neon-migration' || github.ref == 'refs/heads/main'
+    environment: homolog
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Apply versioned migrations
+        if: inputs.operation == 'migrate'
+        run: npm run db:migrate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL_UNPOOLED }}
+          DATABASE_URL_UNPOOLED: ${{ secrets.DATABASE_URL_UNPOOLED }}
+      - name: Encrypted backup
+        if: inputs.operation == 'backup'
+        run: npm run db:backup
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL_UNPOOLED }}
+          DATABASE_URL_UNPOOLED: ${{ secrets.DATABASE_URL_UNPOOLED }}
+          BACKUP_KEY: ${{ secrets.BACKUP_KEY }}
+          BACKUP_FILE: ${{ runner.temp }}/eventpass.epbackup
+      - uses: actions/upload-artifact@v4
+        if: inputs.operation == 'backup'
+        with:
+          name: eventpass-encrypted-backup
+          path: ${{ runner.temp }}/eventpass.epbackup
+          retention-days: 7
+          if-no-files-found: error
