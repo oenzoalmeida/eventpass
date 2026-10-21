@@ -14,6 +14,8 @@ const envSchema = z.object({
   SESSION_TTL_HOURS: z.coerce.number().int().positive().max(24 * 30).default(12),
   /** Cookie com flag Secure. Padrão: ligado em produção. */
   COOKIE_SECURE: bool,
+  /** Pasta do frontend compilado servida pela API. Vazio desativa. */
+  WEB_DIST: z.string().default(''),
 });
 
 export type Env = Omit<z.infer<typeof envSchema>, 'COOKIE_SECURE'> & { COOKIE_SECURE: boolean };

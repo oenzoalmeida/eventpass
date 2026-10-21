@@ -49,7 +49,7 @@ export function matchPath(pattern: string, path: string): Record<string, string>
   return params;
 }
 
-export function Link({ href, onClick, ...props }: AnchorHTMLAttributes<HTMLAnchorElement> & { href: string }) {
+export function Link({ href, onClick, children, ...props }: AnchorHTMLAttributes<HTMLAnchorElement> & { href: string }) {
   const { navigate } = useRouter();
   const handle = (e: MouseEvent<HTMLAnchorElement>) => {
     onClick?.(e);
@@ -58,5 +58,9 @@ export function Link({ href, onClick, ...props }: AnchorHTMLAttributes<HTMLAncho
     e.preventDefault();
     navigate(href);
   };
-  return <a href={href} onClick={handle} {...props} />;
+  return (
+    <a href={href} onClick={handle} {...props}>
+      {children}
+    </a>
+  );
 }

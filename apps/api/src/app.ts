@@ -12,6 +12,7 @@ import { authRoutes } from './routes/auth.js';
 import { adminEventRoutes } from './routes/admin-events.js';
 import { adminAttendanceRoutes } from './routes/admin-attendance.js';
 import { publicRoutes } from './routes/public.js';
+import { serveWeb } from './static.js';
 
 export async function buildApp(env: Env, db: Database) {
   const app = Fastify({
@@ -22,7 +23,15 @@ export async function buildApp(env: Env, db: Database) {
   app.decorate('db', db);
   app.decorateRequest('admin', null);
 
-  await app.register(helmet);
+  await app.register(helmet, {
+    contentSecurityPolicy: {
+      directives: {
+        // QR Code é SVG inline; imagens data: cobrem ícones gerados.
+        'img-src': ["'self'", 'data:'],
+        'connect-src': ["'self'"],
+      },
+    },
+  });
   await app.register(cors, { origin: env.WEB_ORIGIN, credentials: true });
   await app.register(cookie);
   await app.register(rateLimit, { global: false });
@@ -51,6 +60,7 @@ export async function buildApp(env: Env, db: Database) {
   await app.register(adminEventRoutes);
   await app.register(adminAttendanceRoutes);
   await app.register(publicRoutes);
+  if (env.WEB_DIST) await serveWeb(app, env.WEB_DIST);
 
   return app;
 }
