@@ -33,3 +33,11 @@ Status: **em planejamento técnico; migração não implementada nem publicada**
 ## Critério de aceite
 
 Nenhum merge ou deploy de produção antes de todos os fluxos e testes críticos passarem com PostgreSQL real. Preservar o backend SQLite existente na `main` até a homologação.
+
+## Progresso de implementação
+
+- [x] Esquema inicial PostgreSQL em `apps/api/migrations-postgres/001_initial.sql`, com integridade relacional, e-mails case-insensitive e unicidade de check-ins e pontos.
+- [ ] Executar migração contra banco PostgreSQL descartável e validar DDL.
+- [ ] Adaptar API e testes para operações assíncronas.
+
+**Atenção:** o esquema ainda não é executado pela aplicação e não foi validado em banco PostgreSQL. Não rodar em produção.
