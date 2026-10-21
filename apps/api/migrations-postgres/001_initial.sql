@@ -1,6 +1,6 @@
 -- EventPass PostgreSQL baseline. New databases only; do not run against SQLite.
 -- Store dates as ISO UTC text to preserve existing API contracts during migration.
-BEGIN;
+
 CREATE TABLE IF NOT EXISTS schema_migrations (
   name TEXT PRIMARY KEY,
   applied_at TEXT NOT NULL DEFAULT (to_char(clock_timestamp() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'))
@@ -68,5 +68,3 @@ CREATE TABLE point_entries (
  created_at TEXT NOT NULL DEFAULT (to_char(clock_timestamp() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'))
 );
 CREATE INDEX point_entries_participant_idx ON point_entries(participant_id);
-INSERT INTO schema_migrations(name) VALUES ('001_initial.sql');
-COMMIT;

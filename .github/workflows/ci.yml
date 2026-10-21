@@ -1,27 +1,49 @@
 name: CI
-
 on:
-  push:
-    branches: [main]
   pull_request:
-
+  push:
+    branches: [main, feat/vercel-neon-migration]
+permissions:
+  contents: read
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: eventpass
+          POSTGRES_PASSWORD: ci-only-password
+          POSTGRES_DB: eventpass_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd 'pg_isready -U eventpass -d eventpass_test'
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://eventpass:ci-only-password@127.0.0.1:5432/eventpass_test
+      DATABASE_URL_UNPOOLED: postgresql://eventpass:ci-only-password@127.0.0.1:5432/eventpass_test
+      TEST_DATABASE_URL: postgresql://eventpass:ci-only-password@127.0.0.1:5432/eventpass_test
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
-          node-version-file: .nvmrc
-      - run: npm install --no-audit --no-fund
-      - name: Typecheck
-        run: scripts/ci-step.sh npm run typecheck
-      - name: Lint
-        if: ${{ !cancelled() }}
-        run: scripts/ci-step.sh npm run lint
-      - name: Testes
-        if: ${{ !cancelled() }}
-        run: scripts/ci-step.sh npm test
-      - name: Build
-        if: ${{ !cancelled() }}
-        run: scripts/ci-step.sh npm run build
+          node-version: 24
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+      - run: npm run db:migrate
+      - run: npm run db:migrate
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - name: Security audit
+        run: npm audit --omit=dev --audit-level=high
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-results
+          path: test-results
+          retention-days: 3
