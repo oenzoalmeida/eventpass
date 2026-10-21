@@ -16,7 +16,7 @@ const swatches = [
 
 /** Vitrine temporária do design system; será substituída pelo dashboard na etapa 4. */
 export function DesignSystemPage() {
-  const [api, setApi] = useState<ApiState>('checking');
+  const [apiState, setApi] = useState<ApiState>('checking');
 
   useEffect(() => {
     const ctrl = new AbortController();
@@ -34,9 +34,9 @@ export function DesignSystemPage() {
         <h2 id="status-title" className="text-sm font-medium text-fg-muted">
           Status da API
         </h2>
-        {api === 'checking' && <Badge>Verificando…</Badge>}
-        {api === 'online' && <Badge tone="success">Online</Badge>}
-        {api === 'offline' && <Badge tone="danger">Offline</Badge>}
+        {apiState === 'checking' && <Badge>Verificando…</Badge>}
+        {apiState === 'online' && <Badge tone="success">Online</Badge>}
+        {apiState === 'offline' && <Badge tone="danger">Offline</Badge>}
       </section>
 
       <section aria-labelledby="cores-title">

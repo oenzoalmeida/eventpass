@@ -9,12 +9,19 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
       - run: npm install --no-audit --no-fund
-      - run: npm run typecheck
-      - run: npm run lint
-      - run: npm test
-      - run: npm run build
+      - name: Typecheck
+        run: scripts/ci-step.sh npm run typecheck
+      - name: Lint
+        if: ${{ !cancelled() }}
+        run: scripts/ci-step.sh npm run lint
+      - name: Testes
+        if: ${{ !cancelled() }}
+        run: scripts/ci-step.sh npm test
+      - name: Build
+        if: ${{ !cancelled() }}
+        run: scripts/ci-step.sh npm run build
