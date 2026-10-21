@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Badge, Button, Card, CardDescription, CardTitle, Input } from '../components/ui';
-import { fetchHealth } from '../lib/api';
+import { api } from '../lib/api';
 
 type ApiState = 'checking' | 'online' | 'offline';
 
@@ -20,7 +20,7 @@ export function DesignSystemPage() {
 
   useEffect(() => {
     const ctrl = new AbortController();
-    fetchHealth(ctrl.signal)
+    api.health(ctrl.signal)
       .then(() => setApi('online'))
       .catch((e: unknown) => {
         if (!(e instanceof DOMException && e.name === 'AbortError')) setApi('offline');

@@ -22,7 +22,7 @@ As decisões de implementação serão registradas junto ao código à medida qu
 
 - [x] Repositório privado, commit inicial e arquivos básicos de documentação
 - [ ] Estrutura da aplicação e design system, com modo claro e escuro
-- [ ] Banco de dados e autenticação administrativa
+- [ ] Banco de dados e autenticação administrativa (em revisão)
 - [ ] Dashboard e gestão de eventos
 - [ ] Inscrições públicas com controle de vagas e duplicidade
 - [ ] Check-in por QR Code e pontuação após presença confirmada
@@ -31,13 +31,18 @@ As decisões de implementação serão registradas junto ao código à medida qu
 
 ## Desenvolvimento local
 
-Requisitos: Node.js 20 ou superior (veja `.nvmrc`) e npm 10.
+Requisitos: Node.js 22.13 ou superior (veja `.nvmrc`) e npm 10.
 
 ```bash
 npm install
 cp .env.example .env   # opcional; os valores padrão funcionam localmente
+npm run admin:create   # cria o primeiro administrador (pede e-mail, nome e senha)
 npm run dev            # API em http://127.0.0.1:3333 e web em http://localhost:5173
 ```
+
+O banco SQLite fica em `apps/api/data/` e as migrações rodam sozinhas ao iniciar a API
+(ou com `npm run db:migrate`). A API usa o módulo `node:sqlite` nativo, por isso exige
+Node.js 22.13 ou superior e não precisa de compilação nativa.
 
 Outros scripts na raiz:
 
@@ -58,6 +63,21 @@ apps/
 packages/
   shared/     Schemas Zod e tipos compartilhados entre API e web
 ```
+
+### Banco e autenticação
+
+- Migrações SQL versionadas em `apps/api/migrations`, aplicadas em ordem e registradas em
+  `schema_migrations`.
+- Integridade no banco: `UNIQUE(event_id, participant_id)` contra inscrição duplicada, um
+  check-in por inscrição e um lançamento de pontos por check-in.
+- Senhas com scrypt (`node:crypto`), comparação em tempo constante e mesma resposta para
+  e-mail inexistente ou senha errada.
+- Sessão em cookie `httpOnly` e `SameSite=Strict`; o banco guarda só o hash do token.
+- Login limitado a 10 tentativas a cada 15 minutos por IP. Requisições que alteram dados
+  precisam ser JSON, o que bloqueia CSRF por formulário.
+
+Para criar o administrador sem interação (por exemplo, em um script de deploy), defina
+`ADMIN_EMAIL`, `ADMIN_NAME` e `ADMIN_PASSWORD` no ambiente antes de `npm run admin:create`.
 
 ### Design system
 
