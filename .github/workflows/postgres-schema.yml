@@ -56,7 +56,7 @@ jobs:
             END IF;
           END $$;
           SQL
-      - name: Verify rollback of invalid row
+      - name: Exercise registrations, check-ins and points\n        run: psql -v ON_ERROR_STOP=1 -f apps/api/migrations-postgres/smoke-test.sql\n      - name: Verify rollback of invalid row
         run: |
           if psql -v ON_ERROR_STOP=1 -c "INSERT INTO events (slug,title,starts_at,ends_at,capacity,created_by) VALUES ('invalid','Invalid','2026-10-21T12:00:00Z','2026-10-21T11:00:00Z',0,999)"; then
             echo 'Invalid event unexpectedly accepted'; exit 1
