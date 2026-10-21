@@ -18,7 +18,7 @@ jobs:
           POSTGRES_DB: eventpass_test
         ports: ['5432:5432']
         options: >-
-          --health-cmd 'pg_isready -U eventpass -d eventpass_test'
+          --health-cmd "pg_isready -U eventpass -d eventpass_test"
           --health-interval 5s --health-timeout 5s --health-retries 10
     env:
       DATABASE_URL: postgresql://eventpass:ci-only-password@127.0.0.1:5432/eventpass_test
