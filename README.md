@@ -31,7 +31,40 @@ As decisões de implementação serão registradas junto ao código à medida qu
 
 ## Desenvolvimento local
 
-Os comandos de instalação, execução e testes serão adicionados quando a estrutura da aplicação e seus scripts forem criados. A meta é permitir execução local sem dependência exclusiva do Replit.
+Requisitos: Node.js 20 ou superior (veja `.nvmrc`) e npm 10.
+
+```bash
+npm install
+cp .env.example .env   # opcional; os valores padrão funcionam localmente
+npm run dev            # API em http://127.0.0.1:3333 e web em http://localhost:5173
+```
+
+Outros scripts na raiz:
+
+| Comando | O que faz |
+| --- | --- |
+| `npm run build` | Compila shared, API e web |
+| `npm run typecheck` | Verifica tipos em todos os pacotes |
+| `npm test` | Roda os testes (Vitest) |
+| `npm run lint` | ESLint com regras de acessibilidade (jsx-a11y) |
+| `npm run format` | Formata o código com Prettier |
+
+### Estrutura
+
+```
+apps/
+  api/        Fastify + TypeScript (validação com Zod, helmet, CORS)
+  web/        React + TypeScript + Vite + Tailwind CSS v4
+packages/
+  shared/     Schemas Zod e tipos compartilhados entre API e web
+```
+
+### Design system
+
+Os componentes usam tokens semânticos (`bg-surface`, `text-fg`, `bg-primary`…) definidos em
+`apps/web/src/index.css`, com valores próprios para os modos claro e escuro. O tema segue o
+sistema por padrão e pode ser fixado pelo seletor no cabeçalho. Componentes base ficam em
+`apps/web/src/components/ui`: `Button`, `Input`, `Card`, `Badge` e `ThemeToggle`.
 
 ## Segurança
 
