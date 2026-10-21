@@ -14,7 +14,7 @@
     "dev": "npm run build -w @eventpass/shared && concurrently -n api,web -c blue,magenta \"npm run dev -w @eventpass/api\" \"npm run dev -w @eventpass/web\"",
     "build": "npm run build -w @eventpass/shared && npm run build -w @eventpass/api && npm run build -w @eventpass/web",
     "typecheck": "npm run build -w @eventpass/shared && npm run typecheck --workspaces --if-present",
-    "lint": "eslint .",
+    "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "npm run build -w @eventpass/shared && npm run test --workspaces --if-present",

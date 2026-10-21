@@ -15,6 +15,10 @@ export default tseslint.config(
     rules: { ...reactHooks.configs.recommended.rules, ...jsxA11y.configs.recommended.rules },
   },
   {
+    files: ['apps/web/public/**/*.js'],
+    languageOptions: { globals: globals.browser, sourceType: 'script' },
+  },
+  {
     files: ['apps/api/**/*.ts', 'packages/**/*.ts', '*.js'],
     languageOptions: { globals: globals.node },
   },
