@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+      - run: npm install --no-audit --no-fund
+      - name: Typecheck
+        run: scripts/ci-step.sh npm run typecheck
+      - name: Lint
+        if: ${{ !cancelled() }}
+        run: scripts/ci-step.sh npm run lint
+      - name: Testes
+        if: ${{ !cancelled() }}
+        run: scripts/ci-step.sh npm test
+      - name: Build
+        if: ${{ !cancelled() }}
+        run: scripts/ci-step.sh npm run build

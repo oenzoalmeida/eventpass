@@ -1,0 +1,72 @@
+@import 'tailwindcss';
+
+/* Modo escuro controlado pela classe .dark no <html> */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Tokens semânticos: os componentes usam bg-surface, text-fg etc., nunca cores cruas. */
+:root {
+  --ep-bg: oklch(0.985 0.004 260);
+  --ep-surface: oklch(1 0 0);
+  --ep-surface-muted: oklch(0.96 0.006 260);
+  --ep-fg: oklch(0.22 0.02 265);
+  --ep-fg-muted: oklch(0.48 0.02 265);
+  --ep-border: oklch(0.9 0.008 260);
+  --ep-primary: oklch(0.52 0.2 275);
+  --ep-primary-hover: oklch(0.46 0.2 275);
+  --ep-primary-fg: oklch(0.99 0 0);
+  --ep-success: oklch(0.55 0.15 150);
+  --ep-warning: oklch(0.68 0.15 75);
+  --ep-danger: oklch(0.55 0.21 25);
+  --ep-ring: oklch(0.6 0.2 275);
+}
+
+.dark {
+  --ep-bg: oklch(0.17 0.015 265);
+  --ep-surface: oklch(0.21 0.018 265);
+  --ep-surface-muted: oklch(0.25 0.02 265);
+  --ep-fg: oklch(0.95 0.005 260);
+  --ep-fg-muted: oklch(0.72 0.015 260);
+  --ep-border: oklch(0.32 0.02 265);
+  --ep-primary: oklch(0.7 0.16 275);
+  --ep-primary-hover: oklch(0.76 0.14 275);
+  --ep-primary-fg: oklch(0.17 0.02 265);
+  --ep-success: oklch(0.72 0.15 150);
+  --ep-warning: oklch(0.8 0.14 80);
+  --ep-danger: oklch(0.7 0.17 25);
+  --ep-ring: oklch(0.75 0.15 275);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--ep-bg);
+  --color-surface: var(--ep-surface);
+  --color-surface-muted: var(--ep-surface-muted);
+  --color-fg: var(--ep-fg);
+  --color-fg-muted: var(--ep-fg-muted);
+  --color-border: var(--ep-border);
+  --color-primary: var(--ep-primary);
+  --color-primary-hover: var(--ep-primary-hover);
+  --color-primary-fg: var(--ep-primary-fg);
+  --color-success: var(--ep-success);
+  --color-warning: var(--ep-warning);
+  --color-danger: var(--ep-danger);
+  --color-ring: var(--ep-ring);
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    @apply bg-bg text-fg antialiased;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-ring;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+    }
+  }
+}

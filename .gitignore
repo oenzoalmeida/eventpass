@@ -4,11 +4,11 @@ node_modules/
 .pnp.*
 
 # Builds e caches
-/dist/
-/build/
-/coverage/
+dist/
+build/
+coverage/
 /.next/
-/.vite/
+.vite/
 /.turbo/
 /.cache/
 
@@ -26,7 +26,7 @@ pnpm-debug.log*
 !.env.example
 
 # Bancos e dados locais (SQLite)
-/data/
+data/
 *.db
 *.db-*
 *.sqlite
@@ -38,3 +38,4 @@ pnpm-debug.log*
 /uploads/
 .DS_Store
 Thumbs.db
+*.tsbuildinfo
