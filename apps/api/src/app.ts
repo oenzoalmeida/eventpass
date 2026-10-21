@@ -10,6 +10,8 @@ import { loadAdmin } from './auth/plugin.js';
 import { healthRoutes } from './routes/health.js';
 import { authRoutes } from './routes/auth.js';
 import { adminEventRoutes } from './routes/admin-events.js';
+import { adminAttendanceRoutes } from './routes/admin-attendance.js';
+import { publicRoutes } from './routes/public.js';
 
 export async function buildApp(env: Env, db: Database) {
   const app = Fastify({
@@ -47,6 +49,8 @@ export async function buildApp(env: Env, db: Database) {
   await app.register(healthRoutes);
   await app.register(authRoutes(env));
   await app.register(adminEventRoutes);
+  await app.register(adminAttendanceRoutes);
+  await app.register(publicRoutes);
 
   return app;
 }
