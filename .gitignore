@@ -39,3 +39,4 @@ data/
 .DS_Store
 Thumbs.db
 *.tsbuildinfo
+package-lock.json
