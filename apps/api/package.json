@@ -11,7 +11,8 @@
     "test": "vitest run",
     "db:migrate": "tsx --env-file-if-exists=../../.env src/scripts/migrate.ts",
     "admin:create": "tsx --env-file-if-exists=../../.env src/scripts/create-admin.ts",
-    "db:seed": "tsx --env-file-if-exists=../../.env src/scripts/seed.ts"
+    "db:seed": "tsx --env-file-if-exists=../../.env src/scripts/seed.ts",
+    "db:backup": "tsx --env-file-if-exists=../../.env src/scripts/backup.ts"
   },
   "dependencies": {
     "@eventpass/shared": "0.1.0",

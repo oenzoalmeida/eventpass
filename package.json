@@ -21,7 +21,8 @@
     "db:migrate": "npm run build -w @eventpass/shared && npm run db:migrate -w @eventpass/api",
     "admin:create": "npm run build -w @eventpass/shared && npm run admin:create -w @eventpass/api",
     "start": "WEB_DIST=../web/dist NODE_ENV=production npm run start -w @eventpass/api",
-    "db:seed": "npm run build -w @eventpass/shared && npm run db:seed -w @eventpass/api"
+    "db:seed": "npm run build -w @eventpass/shared && npm run db:seed -w @eventpass/api",
+    "db:backup": "npm run build -w @eventpass/shared && npm run db:backup -w @eventpass/api"
   },
   "devDependencies": {
     "@eslint/js": "^9.29.0",
