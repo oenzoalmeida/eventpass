@@ -9,39 +9,57 @@ import { openDb } from './db/index.js';
  * entre invocações; as sessões ficam no banco (não em memória), então o
  * login persiste entre invocações e instâncias frias.
  */
-let handlerPromise: Promise<(req: Request) => Promise<Response>> | undefined;
+let instance:
+  Promise<{ handler: (req: Request) => Promise<Response>; close: () => Promise<void> }> | undefined;
 
 export function getNetlifyHandler(): Promise<(req: Request) => Promise<Response>> {
-  handlerPromise ??= (async () => {
+  return (async () => (await getInstance()).handler)();
+}
+
+async function getInstance() {
+  instance ??= (async () => {
     const env = loadEnv({ ...process.env, NODE_ENV: process.env.NODE_ENV ?? 'production' });
+    // openDb aplica as migrações pendentes antes de construir o app.
     const { db } = await openDb(env);
     const app = await buildApp(env, db);
-    return async (req: Request): Promise<Response> => {
-      const url = new URL(req.url);
-      const headers: Record<string, string> = {};
-      req.headers.forEach((value, key) => {
-        headers[key] = value;
-      });
-      const hasBody = !['GET', 'HEAD'].includes(req.method);
-      const payload = hasBody ? await req.text() : undefined;
+    return {
+      handler: async (req: Request): Promise<Response> => {
+        const url = new URL(req.url);
+        const headers: Record<string, string> = {};
+        req.headers.forEach((value, key) => {
+          headers[key] = value;
+        });
+        const hasBody = !['GET', 'HEAD'].includes(req.method);
+        const payload = hasBody ? await req.text() : undefined;
 
-      const res = await app.inject({
-        method: req.method,
-        url: `${url.pathname}${url.search}`,
-        headers,
-        payload,
-      });
+        const res = await app.inject({
+          method: req.method,
+          url: `${url.pathname}${url.search}`,
+          headers,
+          payload,
+        });
 
-      const outHeaders = new Headers();
-      for (const [key, value] of Object.entries(res.headers)) {
-        if (Array.isArray(value)) value.forEach((v) => outHeaders.append(key, v));
-        else if (value != null) outHeaders.set(key, String(value));
-      }
-      return new Response(new Uint8Array(res.rawPayload), {
-        status: res.statusCode,
-        headers: outHeaders,
-      });
+        const outHeaders = new Headers();
+        for (const [key, value] of Object.entries(res.headers)) {
+          if (Array.isArray(value)) value.forEach((v) => outHeaders.append(key, v));
+          else if (value != null) outHeaders.set(key, String(value));
+        }
+        return new Response(new Uint8Array(res.rawPayload), {
+          status: res.statusCode,
+          headers: outHeaders,
+        });
+      },
+      close: async () => {
+        await app.close();
+        await db.close();
+      },
     };
   })();
-  return handlerPromise;
+  return instance;
+}
+
+/** Encerra app e conexões — usado por testes; a Netlify recicla a instância. */
+export async function closeNetlify(): Promise<void> {
+  if (instance) await (await instance).close();
+  instance = undefined;
 }

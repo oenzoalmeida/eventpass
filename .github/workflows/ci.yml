@@ -25,3 +25,22 @@ jobs:
       - name: Build
         if: ${{ !cancelled() }}
         run: scripts/ci-step.sh npm run build
+
+  # Testes PostgreSQL de integração. Opcionais: só rodam quando a variável de
+  # repositório PG_TEST_DATABASE_URL está definida. Ela DEVE apontar para um
+  # banco DESCARTÁVEL (ex.: branch Neon dedicado a testes) — a suíte trunca os
+  # dados. Nunca aponte para o banco de produção ou homologação real.
+  postgres:
+    if: vars.PG_TEST_DATABASE_URL != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+      - run: npm install --no-audit --no-fund
+      - name: Testes PostgreSQL
+        run: npm run test:pg
+        env:
+          PG_TEST_DATABASE_URL: ${{ vars.PG_TEST_DATABASE_URL }}
+          PG_TEST_SSL: ${{ vars.PG_TEST_SSL || 'true' }}

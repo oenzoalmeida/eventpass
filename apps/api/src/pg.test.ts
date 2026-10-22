@@ -93,6 +93,41 @@ describePg('PostgreSQL (dialect do Neon)', () => {
     expect(detail.json().event.registrations).toBe(2);
   });
 
+  it('adaptador Netlify: migrações rodam antes do app e a sessão persiste entre invocações', async () => {
+    const prev = { ...process.env };
+    process.env.DATABASE_DIALECT = 'postgres';
+    process.env.DATABASE_URL = url!;
+    process.env.DATABASE_SSL = process.env.PG_TEST_SSL ?? 'false';
+    try {
+      // O import ocorre DEPOIS de definir o env: openDb aplica as migrações
+      // pendentes antes de construir o app (mesmo caminho da Netlify Function).
+      const { getNetlifyHandler, closeNetlify } = await import('./netlify.js');
+      const handler = await getNetlifyHandler();
+
+      const health = await handler(new Request('http://x/api/health'));
+      expect(health.status).toBe(200);
+
+      // Login numa "invocação"; o cookie vale na seguinte (sessão no banco).
+      const login = await handler(
+        new Request('http://x/api/auth/login', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ email: TEST_ADMIN.email, password: TEST_ADMIN.password }),
+        }),
+      );
+      expect(login.status).toBe(200);
+      const cookie = login.headers.get('set-cookie')!.split(';')[0]!;
+
+      const me = await handler(new Request('http://x/api/auth/me', { headers: { cookie } }));
+      expect(me.status).toBe(200);
+      expect((await me.json()).admin.email).toBe(TEST_ADMIN.email);
+
+      await closeNetlify();
+    } finally {
+      process.env = prev;
+    }
+  });
+
   it('check-in duplicado não gera pontos adicionais', async () => {
     const cookie = await loginCookie(app);
     const create = await app.inject({

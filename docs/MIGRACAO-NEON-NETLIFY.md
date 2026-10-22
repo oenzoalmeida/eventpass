@@ -76,18 +76,40 @@ build && npm run admin:create && npm start` com `DATABASE_DIALECT=sqlite`.
 4. Se precisar dos dados do Neon: exporte em CSV/INSERTs e reinsira no SQLite
    na ordem das FKs.
 
+## Instalação e builds reproduzíveis
+
+O repositório **não versiona `package-lock.json`** (está no `.gitignore`).
+Motivo: o lockfile gerado no Windows omite as dependências opcionais do Linux
+(`@rollup/rollup-linux-x64-gnu` etc. — bug antigo do npm), o que já quebrou o
+CI no Linux neste PR. Sem lockfile, o CI e a Netlify usam `npm install`, que
+resolve os opcionais da plataforma correta. **Não troque por `npm ci`** sem
+antes gerar um lockfile válido em Linux e comitá-lo.
+
+Os ranges de versão são conservadores (`^` com patch/minor controlados pelo
+`.nvmrc` Node 22 + CI verde), e a Netlify fixa o Node via `NODE_VERSION=22`.
+
 ## Testes
 
 - `npm test` — suíte completa em SQLite (não depende de rede) + adaptador
   Netlify com SQLite em memória.
 - `npm run test:pg` — integração Postgres real (concorrência, capacidade,
-  check-in idempotente, sessões entre instâncias). Requer
-  `PG_TEST_DATABASE_URL` em banco descartável:
+  check-in idempotente, sessões entre instâncias e o próprio adaptador
+  Netlify conectado ao Postgres, provando que as migrações rodam antes do
+  app). Requer `PG_TEST_DATABASE_URL` em banco descartável:
   ```bash
   docker run -d --name eventpass-pg-test -e POSTGRES_PASSWORD=postgres -p 5433:5432 postgres:16
   PG_TEST_DATABASE_URL=postgres://postgres:postgres@localhost:5433/postgres PG_TEST_SSL=false npm run test:pg
   ```
-  No CI (sem Postgres) os testes PG são pulados automaticamente.
+  Localmente sem Postgres os testes PG são pulados automaticamente.
+
+### PG obrigatório na homologação
+
+O CI tem um job `postgres` que roda `npm run test:pg` **sempre que a variável
+de repositório `PG_TEST_DATABASE_URL` estiver definida** (Settings → Variables
+and secrets → Variables). Aponte para um branch Neon **descartável** (a suíte
+trunca os dados a cada teste) — por exemplo `eventpass-homolog/ci`, criado e
+destruído no console do Neon. Com a variável definida, o check de PG passa a
+ser obrigatório para o merge. `PG_TEST_SSL` (padrão `true`) acompanha o TLS.
 
 ## Teste de carga local (10/30/50 vus)
 
