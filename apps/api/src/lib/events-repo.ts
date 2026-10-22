@@ -1,5 +1,5 @@
 import type { AdminEvent, PublicEvent } from '@eventpass/shared';
-import type { Database } from '../db/database.js';
+import type { DbClient } from '../db/client.js';
 
 interface EventRow {
   id: number;
@@ -14,8 +14,8 @@ interface EventRow {
   status: AdminEvent['status'];
   created_at: string;
   updated_at: string;
-  registrations: number;
-  checkins: number;
+  registrations: number | string;
+  checkins: number | string;
 }
 
 const SELECT_EVENT = `
@@ -27,18 +27,19 @@ const SELECT_EVENT = `
 
 export function toAdminEvent(r: EventRow): AdminEvent {
   return {
-    id: r.id,
+    id: Number(r.id),
     slug: r.slug,
     title: r.title,
     description: r.description,
     location: r.location,
     startsAt: r.starts_at,
     endsAt: r.ends_at,
-    capacity: r.capacity,
-    checkinPoints: r.checkin_points,
+    capacity: Number(r.capacity),
+    checkinPoints: Number(r.checkin_points),
     status: r.status,
-    registrations: r.registrations,
-    checkins: r.checkins,
+    // COUNT/SUM chegam como string no Postgres e como número no SQLite.
+    registrations: Number(r.registrations),
+    checkins: Number(r.checkins),
     createdAt: r.created_at,
     updatedAt: r.updated_at,
   };
@@ -60,16 +61,21 @@ export function toPublicEvent(e: AdminEvent, now = new Date().toISOString()): Pu
   };
 }
 
-export function listEvents(db: Database, where = '', params: Array<string | number> = []): AdminEvent[] {
-  return (db.prepare(`${SELECT_EVENT} ${where}`).all(...params) as unknown as EventRow[]).map(toAdminEvent);
+export async function listEvents(
+  db: DbClient,
+  where = '',
+  params: Array<string | number> = [],
+): Promise<AdminEvent[]> {
+  const rows = await db.all<EventRow>(`${SELECT_EVENT} ${where}`, params);
+  return rows.map(toAdminEvent);
 }
 
-export function getEventById(db: Database, id: number): AdminEvent | null {
-  const row = db.prepare(`${SELECT_EVENT} WHERE e.id = ?`).get(id) as EventRow | undefined;
+export async function getEventById(db: DbClient, id: number): Promise<AdminEvent | null> {
+  const row = await db.get<EventRow>(`${SELECT_EVENT} WHERE e.id = ?`, [id]);
   return row ? toAdminEvent(row) : null;
 }
 
-export function getEventBySlug(db: Database, slug: string): AdminEvent | null {
-  const row = db.prepare(`${SELECT_EVENT} WHERE e.slug = ?`).get(slug) as EventRow | undefined;
+export async function getEventBySlug(db: DbClient, slug: string): Promise<AdminEvent | null> {
+  const row = await db.get<EventRow>(`${SELECT_EVENT} WHERE e.slug = ?`, [slug]);
   return row ? toAdminEvent(row) : null;
 }

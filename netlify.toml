@@ -1,0 +1,23 @@
+# Implantação Netlify (homologação). A function /api/* usa o banco Postgres (Neon).
+[build]
+  command = "npm run build"
+  functions = "apps/api/netlify/functions"
+  publish = "apps/web/dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[functions]
+  node_bundler = "esbuild"
+
+# A function responde /api/* (config.path no próprio arquivo); o resto é o SPA.
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
