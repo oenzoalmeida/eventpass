@@ -1,8 +1,12 @@
 import { randomBytes, scrypt as scryptCb, timingSafeEqual, type ScryptOptions } from 'node:crypto';
 
 // scrypt nativo do Node: sem dependência compilada. Parâmetros seguem a recomendação OWASP (N=2^17, r=8, p=1).
-// EP_SCRYPT_N permite reduzir o custo apenas em teste; nunca defina em produção.
-const N = Number(process.env.EP_SCRYPT_N) || 2 ** 17;
+// EP_SCRYPT_N permite reduzir o custo para acelerar testes; em produção é ignorado.
+const OWASP_N = 2 ** 17;
+const N =
+  process.env.NODE_ENV === 'production'
+    ? OWASP_N
+    : Math.trunc(Number(process.env.EP_SCRYPT_N)) || OWASP_N;
 const PARAMS = { N, r: 8, p: 1, maxmem: 256 * 1024 * 1024 } satisfies ScryptOptions;
 const KEY_LEN = 64;
 
