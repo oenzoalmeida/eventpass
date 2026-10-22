@@ -1,7 +1,9 @@
 import { randomBytes, scrypt as scryptCb, timingSafeEqual, type ScryptOptions } from 'node:crypto';
 
 // scrypt nativo do Node: sem dependência compilada. Parâmetros seguem a recomendação OWASP (N=2^17, r=8, p=1).
-const PARAMS = { N: 2 ** 17, r: 8, p: 1, maxmem: 256 * 1024 * 1024 } satisfies ScryptOptions;
+// EP_SCRYPT_N permite reduzir o custo apenas em teste; nunca defina em produção.
+const N = Number(process.env.EP_SCRYPT_N) || 2 ** 17;
+const PARAMS = { N, r: 8, p: 1, maxmem: 256 * 1024 * 1024 } satisfies ScryptOptions;
 const KEY_LEN = 64;
 
 function scrypt(password: string, salt: Buffer, opts: ScryptOptions): Promise<Buffer> {
@@ -16,7 +18,14 @@ function scrypt(password: string, salt: Buffer, opts: ScryptOptions): Promise<Bu
 export async function hashPassword(password: string): Promise<string> {
   const salt = randomBytes(16);
   const key = await scrypt(password, salt, PARAMS);
-  return ['scrypt', PARAMS.N, PARAMS.r, PARAMS.p, salt.toString('base64'), key.toString('base64')].join('$');
+  return [
+    'scrypt',
+    PARAMS.N,
+    PARAMS.r,
+    PARAMS.p,
+    salt.toString('base64'),
+    key.toString('base64'),
+  ].join('$');
 }
 
 export async function verifyPassword(password: string, stored: string): Promise<boolean> {
