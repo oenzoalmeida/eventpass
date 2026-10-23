@@ -1,17 +1,13 @@
-import { readdirSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import type { Env } from '../env.js';
 import type { DbClient } from './client.js';
 import { SqliteClient } from './sqlite-client.js';
 import { PgClient, migratePostgres } from './pg.js';
+import { PG_MIGRATIONS } from './pg-migrations.js';
 import { openDatabase, migrate as migrateSqlite } from './database.js';
 
 export type { DbClient } from './client.js';
 export { SqliteClient, PgClient };
 export { openDatabase, migrate as migrateSqlite } from './database.js';
-
-const PG_MIGRATIONS_DIR = join(dirname(fileURLToPath(import.meta.url)), '../../migrations-pg');
 
 /**
  * Abre o cliente conforme DATABASE_DIALECT.
@@ -19,7 +15,8 @@ const PG_MIGRATIONS_DIR = join(dirname(fileURLToPath(import.meta.url)), '../../m
  * Migrações automáticas na inicialização (server.ts e Netlify Function):
  * controladas por DB_AUTO_MIGRATE — ligado fora de produção, desligado em
  * produção por padrão. Com a execução automática desligada, o banco é apenas
- * VERIFICADO: se faltar migração, o processo falha com instrução clara em
+ * VERIFICADO contra o manifesto embutido (o bundle serverless não tem os
+ * arquivos .sql): se faltar migração, o processo falha com instrução clara em
  * vez de alterar o schema silenciosamente.
  */
 export async function openDb(env: Env): Promise<{ db: DbClient; applied: string[] }> {
@@ -31,7 +28,6 @@ export async function openDb(env: Env): Promise<{ db: DbClient; applied: string[
     }
     await assertMigrationsUpToDate(
       pg,
-      PG_MIGRATIONS_DIR,
       'npm run db:migrate (com DATABASE_DIALECT=postgres) ou defina DB_AUTO_MIGRATE=true',
     );
     return { db: pg, applied: [] };
@@ -41,11 +37,8 @@ export async function openDb(env: Env): Promise<{ db: DbClient; applied: string[
   return { db: sqlite, applied };
 }
 
-/** Falha rápido se o banco não está na versão do código. */
-async function assertMigrationsUpToDate(db: DbClient, dir: string, hint: string): Promise<void> {
-  const files = readdirSync(dir)
-    .filter((f) => /^\d+_.+\.sql$/.test(f))
-    .sort();
+/** Falha rápido se o banco não está na versão do código (manifesto, sem disco). */
+async function assertMigrationsUpToDate(db: DbClient, hint: string): Promise<void> {
   const appliedRows = await db
     .all<{ name: string }>('SELECT name FROM schema_migrations')
     .catch(() => null);
@@ -53,7 +46,7 @@ async function assertMigrationsUpToDate(db: DbClient, dir: string, hint: string)
     throw new Error(`Banco sem tabela schema_migrations. Aplique as migrações primeiro: ${hint}`);
   }
   const applied = new Set(appliedRows.map((r) => r.name));
-  const missing = files.filter((f) => !applied.has(f));
+  const missing = PG_MIGRATIONS.filter((f) => !applied.has(f));
   if (missing.length) {
     throw new Error(`Migrações pendentes no banco (${missing.join(', ')}). Aplique com: ${hint}`);
   }

@@ -4,7 +4,8 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { toPgPlaceholders, type DbClient, type RunResult } from './client.js';
 
-const MIGRATIONS_DIR = join(dirname(fileURLToPath(import.meta.url)), '../../migrations-pg');
+// Lazy: em bundle serverless (CJS) import.meta.url é undefined no topo do módulo.
+const migrationsDir = () => join(dirname(fileURLToPath(import.meta.url)), '../../migrations-pg');
 
 export interface PostgresOptions {
   /** SSL obrigatório para o Neon; desative só em Postgres local sem TLS. */
@@ -100,7 +101,7 @@ function hash(s: string): number {
 /** Aplica os arquivos NNN_nome.sql de migrations-pg ainda não registrados. */
 export async function migratePostgres(
   client: PgClient,
-  dir: string = MIGRATIONS_DIR,
+  dir: string = migrationsDir(),
 ): Promise<string[]> {
   await client.run(`CREATE TABLE IF NOT EXISTS schema_migrations (
     name TEXT PRIMARY KEY,
@@ -109,9 +110,16 @@ export async function migratePostgres(
   const applied = new Set(
     (await client.all<{ name: string }>('SELECT name FROM schema_migrations')).map((r) => r.name),
   );
-  const files = readdirSync(dir)
-    .filter((f) => /^\d+_.+\.sql$/.test(f))
-    .sort();
+  let files: string[];
+  try {
+    files = readdirSync(dir)
+      .filter((f) => /^\d+_.+\.sql$/.test(f))
+      .sort();
+  } catch {
+    // Bundle serverless não inclui os .sql: nenhuma migração aplicável aqui.
+    // Aplique com `npm run db:migrate` a partir do repositório.
+    return [];
+  }
 
   const ran: string[] = [];
   for (const file of files) {

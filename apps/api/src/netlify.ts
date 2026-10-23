@@ -44,7 +44,9 @@ async function getInstance() {
           if (Array.isArray(value)) value.forEach((v) => outHeaders.append(key, v));
           else if (value != null) outHeaders.set(key, String(value));
         }
-        return new Response(new Uint8Array(res.rawPayload), {
+        // 204/304 não podem ter corpo: Response lançaria erro na função da Netlify.
+        const bodyless = res.statusCode === 204 || res.statusCode === 304;
+        return new Response(bodyless ? null : new Uint8Array(res.rawPayload), {
           status: res.statusCode,
           headers: outHeaders,
         });
