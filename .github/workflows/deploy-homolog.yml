@@ -1,0 +1,29 @@
+name: Deploy homologação Netlify
+
+# Deploy automático da branch de homologação. NÃO toca na main e não publica
+# produção: publica apenas o site de homologação (branch abaixo).
+on:
+  push:
+    branches: [feat/netlify-neon-homolog]
+  workflow_dispatch:
+
+concurrency:
+  group: netlify-homolog
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run build
+      - name: Deploy
+        run: node scripts/deploy-homolog.mjs
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
