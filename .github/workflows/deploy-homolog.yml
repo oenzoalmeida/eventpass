@@ -2,6 +2,8 @@ name: Deploy homologação Netlify
 
 # Deploy automático da branch de homologação. NÃO toca na main e não publica
 # produção: publica apenas o site de homologação (branch abaixo).
+# Requer o secret NETLIFY_AUTH_TOKEN (Personal access token do Netlify);
+# sem ele o workflow passa com um aviso em vez de falhar.
 on:
   push:
     branches: [feat/netlify-neon-homolog]
@@ -10,6 +12,9 @@ on:
 concurrency:
   group: netlify-homolog
   cancel-in-progress: true
+
+env:
+  NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
 
 jobs:
   deploy:
@@ -22,8 +27,11 @@ jobs:
           cache: npm
       - run: npm ci --no-audit --no-fund
       - run: npm run build
+      - name: Sem token configurado
+        if: env.NETLIFY_AUTH_TOKEN == ''
+        run: echo "::notice::Deploy pulado: configure o secret NETLIFY_AUTH_TOKEN no repositório."
       - name: Deploy
+        if: env.NETLIFY_AUTH_TOKEN != ''
         run: node scripts/deploy-homolog.mjs
         env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID || 'e7bc4548-6a98-4d4a-b9ab-ca4929f719d1' }}
