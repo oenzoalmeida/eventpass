@@ -16,6 +16,9 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -25,11 +28,8 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - run: npm run build
       - name: Sem token configurado
-        if: ${{ secrets.NETLIFY_AUTH_TOKEN == '' }}
-        run: echo "::notice::Deploy pulado: configure o secret NETLIFY_AUTH_TOKEN no repositório."
+        if: env.NETLIFY_AUTH_TOKEN == ''
+        run: 'echo "::notice::Deploy pulado: configure o secret NETLIFY_AUTH_TOKEN no repositório."'
       - name: Deploy
-        if: ${{ secrets.NETLIFY_AUTH_TOKEN != '' }}
+        if: env.NETLIFY_AUTH_TOKEN != ''
         run: node scripts/deploy-homolog.mjs
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
