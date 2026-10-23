@@ -209,3 +209,43 @@ DATABASE_URL='<string>' npm run db:migrate`. A function NÃO migra sozinha
 curl https://incomparable-panda-7984de.netlify.app/api/health   # {"status":"ok",...}
 # login, criação de evento, inscrição, ingresso, check-in e relatório pela UI
 ```
+
+## E2E da homologação (validado localmente com a function real)
+
+A function publicada pela Netlify é um bundle CJS gerado pelo
+zip-it-and-ship-it — diferente do código executado nos testes comuns. A
+validação abaixo roda exatamente o artefato de produção:
+
+```bash
+# 1. Banco local descartável + migrações + admin fictício
+docker run -d --name eventpass-pg-test -e POSTGRES_PASSWORD=postgres -p 5433:5432 postgres:16
+DATABASE_DIALECT=postgres DATABASE_URL=postgres://postgres:postgres@localhost:5433/postgres \
+  DATABASE_SSL=false npm run db:migrate
+ADMIN_EMAIL=admin.homolog@test.local ADMIN_NAME='Admin Homolog' \
+  ADMIN_PASSWORD='<senha forte>' npm run admin:create
+
+# 2. Bundle real (mesmo empacotador da Netlify) + servidor local
+npm run build && node scripts/deploy-homolog.mjs --skip-publish  # ou monte .deploy-netlify
+cd .deploy-netlify && npx @netlify/zip-it-and-ship-it functions built && unzip -o built/api.zip -d built-x
+cd .. && NODE_ENV=production DATABASE_DIALECT=postgres \
+  DATABASE_URL=postgres://postgres:postgres@localhost:5433/postgres \
+  DATABASE_SSL=false COOKIE_SECURE=false node scripts/serve-function.mjs
+
+# 3. Suíte E2E (30 verificações)
+BASE_URL=http://localhost:8877 node scripts/e2e-homolog.mjs
+```
+
+Resultado (branch atual): **30 ok / 0 falhas** — login, cookie httpOnly+
+SameSite=Strict, sessão persistente, 401 sem sessão, criação/publicação de
+evento, 3 inscrições com 2 recusadas por lotes, ingresso com QR SVG, check-in
+idempotente, pontuação única, relatório (ocupação/presença/pontos), CSV
+pt-BR, ranking com nomes abreviados, cancelamento bloqueado pós check-in,
+logout 204 e sessão invalidada.
+
+Essa suíte encontrou dois bugs que só existiam no runtime serverless e
+foram corrigidos: cold start quebrado por `fileURLToPath(import.meta.url)`
+em bundle CJS, e respostas 204/304 inválidas no adaptador (logout/exclusão
+falhariam com 500).
+
+Para a homologação pública, o mesmo script roda contra a URL real:
+`BASE_URL=https://<site>.netlify.app node scripts/e2e-homolog.mjs`.
