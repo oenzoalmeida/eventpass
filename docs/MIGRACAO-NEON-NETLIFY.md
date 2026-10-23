@@ -167,3 +167,45 @@ esgotadas (409) e rate limit (429) são contados como respostas válidas.
    (região). Mantenha a function e o projeto Neon na mesma região.
 4. **Datas como texto ISO:** o schema PG espelha o SQLite (TEXT). `ORDER BY` e
    comparações funcionam por prefixo ISO; não misture fusos.
+
+## Estado da homologação (out/2026)
+
+Site Netlify criado e publicado: **https://incomparable-panda-7984de.netlify.app**
+(id `e7bc4548-6a98-4d4a-b9ab-ca4929f719d1`, conta `oenzoalmeida`, plano Free).
+Deploy feito pelo script `scripts/deploy-homolog.mjs` (pacote autocontido, via
+CLI). Variáveis já configuradas no site: `DATABASE_DIALECT=postgres`,
+`DATABASE_SSL=true`, `COOKIE_SECURE=true`.
+
+### Ações manuais indispensáveis (dependem de login interativo)
+
+1. **Tornar o site público** — novos sites Netlify nascem com visibilidade
+   restrita e respondem 401 para visitantes. Netlify UI → projeto
+   `incomparable-panda-7984de` → Project configuration → General →
+   Visitor access → Project visibility → **Public** → Save.
+   Não existe API/CLI para esse ajuste (confirmado pela documentação oficial).
+2. **Reautenticar o Neon** — o token local expirou. Rode `npx neonctl auth`
+   (abre o navegador). Depois, no console do Neon, projeto
+   `eventpass-homolog`, branch `homolog`, copie a connection string
+   (host terminado em `-pooler`).
+3. **Definir `DATABASE_URL` no site** — `netlify env:set DATABASE_URL '<string>'`
+   (ou pela UI). É segredo: nunca em commits, logs ou relatórios.
+4. **Migrar o banco de homologação** — só depois de conferir no console que o
+   branch está vazio (sem tabelas): `DATABASE_DIALECT=postgres
+DATABASE_URL='<string>' npm run db:migrate`. A function NÃO migra sozinha
+   em produção (DB_AUTO_MIGRATE=false).
+5. **Criar admin de teste** — mesmas variáveis acima mais
+   `ADMIN_EMAIL`/`ADMIN_NAME`/`ADMIN_PASSWORD` (senha forte) e
+   `npm run admin:create`.
+6. **Deploy automático** — crie um Personal access token no Netlify
+   (User settings → Applications → New token) e cadastre como secret
+   `NETLIFY_AUTH_TOKEN` no repositório GitHub. O workflow
+   `deploy-homolog.yml` publica a cada push da branch (sem ele, o workflow
+   passa com um aviso de deploy pulado). `NETLIFY_SITE_ID` é opcional:
+   o default já aponta para o site de homologação.
+
+### Validação pós-configuração
+
+```bash
+curl https://incomparable-panda-7984de.netlify.app/api/health   # {"status":"ok",...}
+# login, criação de evento, inscrição, ingresso, check-in e relatório pela UI
+```
