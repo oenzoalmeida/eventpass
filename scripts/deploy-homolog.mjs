@@ -52,12 +52,13 @@ writeFileSync(
 `,
 );
 
-console.log('Publicando em https://incomparable-panda-7984de.netlify.app (site ' + SITE_ID + ')');
-execSync(
-  `netlify deploy --prod --site ${SITE_ID} --dir dist --functions functions --message "homolog"`,
-  {
+if (process.argv.includes('--skip-publish')) {
+  console.log(`Pacote montado em ${OUT}/ (publicação pulada com --skip-publish).`);
+} else {
+  console.log('Publicando em https://incomparable-panda-7984de.netlify.app (site ' + SITE_ID + ')');
+  execSync(`netlify deploy --prod --site ${SITE_ID} --dir dist --functions functions --message "homolog"`, {
     cwd: OUT,
     stdio: 'inherit',
-  },
-);
-rmSync(OUT, { recursive: true, force: true });
+  });
+  rmSync(OUT, { recursive: true, force: true });
+}
