@@ -14,6 +14,8 @@ const envSchema = z.object({
   DATABASE_DIALECT: z.enum(['sqlite', 'postgres']).default('sqlite'),
   /** Caminho do SQLite ou string de conexão PostgreSQL (nunca comitada). */
   DATABASE_URL: z.string().min(1).default('./data/eventpass.db'),
+  /** Migrações automáticas na inicialização. Padrão: false em produção, true no resto. */
+  DB_AUTO_MIGRATE: bool,
   /** TLS para o Postgres. Padrão ligado (obrigatório no Neon); false só local. */
   DATABASE_SSL: bool,
   SESSION_TTL_HOURS: z.coerce
@@ -36,5 +38,9 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
     throw new Error(`Variáveis de ambiente inválidas: ${parsed.error.message}`);
   }
   const env = parsed.data;
-  return { ...env, COOKIE_SECURE: env.COOKIE_SECURE ?? env.NODE_ENV === 'production' };
+  return {
+    ...env,
+    COOKIE_SECURE: env.COOKIE_SECURE ?? env.NODE_ENV === 'production',
+    DB_AUTO_MIGRATE: env.DB_AUTO_MIGRATE ?? env.NODE_ENV !== 'production',
+  };
 }

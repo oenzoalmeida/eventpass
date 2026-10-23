@@ -1,6 +1,6 @@
 # Implantação Netlify (homologação). A function /api/* usa o banco Postgres (Neon).
 [build]
-  command = "npm run build"
+  command = "npm ci && npm run build"
   functions = "apps/api/netlify/functions"
   publish = "apps/web/dist"
 

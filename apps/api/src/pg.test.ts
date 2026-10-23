@@ -25,11 +25,11 @@ describePg('PostgreSQL (dialect do Neon)', () => {
 
   beforeEach(async () => {
     db = new PgClient(url!, { ssl: process.env.PG_TEST_SSL !== 'false', prepare: false });
+    // Banco descartável por contrato: recria o schema inteiro a cada teste,
+    // deixando o estado determinístico mesmo após execuções interrompidas.
+    await db.run('DROP SCHEMA public CASCADE');
+    await db.run('CREATE SCHEMA public');
     await migratePostgres(db);
-    // Limpa os dados de teste na ordem das FKs (schema_migrations fica intacta).
-    await db.run(
-      'TRUNCATE point_entries, checkins, registrations, participants, events, sessions, admins RESTART IDENTITY CASCADE',
-    );
     await db.run(`INSERT INTO admins (email, name, password_hash) VALUES (?, ?, ?)`, [
       TEST_ADMIN.email,
       TEST_ADMIN.name,
@@ -126,6 +126,27 @@ describePg('PostgreSQL (dialect do Neon)', () => {
     } finally {
       process.env = prev;
     }
+  });
+
+  it('produção não altera o schema na inicialização: falha se falta migração', async () => {
+    const { openDb } = await import('./db/index.js');
+    const prodEnv = loadEnv({
+      ...process.env,
+      NODE_ENV: 'production',
+      DATABASE_DIALECT: 'postgres',
+      DATABASE_URL: url!,
+      DATABASE_SSL: process.env.PG_TEST_SSL ?? 'false',
+      // DB_AUTO_MIGRATE fica false por padrão em produção.
+    });
+    // Banco na versão do código: abre sem migrar nada.
+    const ok = await openDb(prodEnv);
+    await ok.db.close();
+
+    // Banco desatualizado: recusa com instrução, sem tocar no schema.
+    await db.run('DELETE FROM schema_migrations');
+    await expect(openDb(prodEnv)).rejects.toThrow(/Migrações pendentes|Migração/i);
+    // Restaura o registro (sem reaplicar DDL) para os próximos testes.
+    await db.run(`INSERT INTO schema_migrations (name) VALUES ('001_initial.sql')`);
   });
 
   it('check-in duplicado não gera pontos adicionais', async () => {

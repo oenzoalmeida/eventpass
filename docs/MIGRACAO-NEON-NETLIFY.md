@@ -37,6 +37,7 @@ netlify.toml                    Build, redirect SPA e functions
 | `DATABASE_SSL`      | `true`                                                                                 |
 | `COOKIE_SECURE`     | `true`                                                                                 |
 | `SESSION_TTL_HOURS` | `12`                                                                                   |
+| `DB_AUTO_MIGRATE`   | não definir (produção não altera schema; aplique com `npm run db:migrate`)             |
 
 Diferencial do SQLite local: nenhum além de `DATABASE_DIALECT/URL`.
 
@@ -78,38 +79,70 @@ build && npm run admin:create && npm start` com `DATABASE_DIALECT=sqlite`.
 
 ## Instalação e builds reproduzíveis
 
-O repositório **não versiona `package-lock.json`** (está no `.gitignore`).
-Motivo: o lockfile gerado no Windows omite as dependências opcionais do Linux
-(`@rollup/rollup-linux-x64-gnu` etc. — bug antigo do npm), o que já quebrou o
-CI no Linux neste PR. Sem lockfile, o CI e a Netlify usam `npm install`, que
-resolve os opcionais da plataforma correta. **Não troque por `npm ci`** sem
-antes gerar um lockfile válido em Linux e comitá-lo.
+O `package-lock.json` **é versionado** (lockfile v3, gerado com npm 11), com
+as dependências opcionais de todas as plataformas registradas (incluindo
+`@rollup/rollup-linux-x64-gnu`). O CI e a Netlify instalam com **`npm ci`**
+(build da Netlify: `npm ci && npm run build`), garantindo o mesmo resultado no
+Linux a partir de qualquer sistema operacional.
 
-Os ranges de versão são conservadores (`^` com patch/minor controlados pelo
-`.nvmrc` Node 22 + CI verde), e a Netlify fixa o Node via `NODE_VERSION=22`.
+Se um dia precisar regenerar o lockfile, use npm ≥ 10.5 e confira que os
+opcionais do Linux continuam presentes (`@rollup/rollup-linux-*` em
+`package-lock.json`) — lockfiles antigos gerados no Windows omitiam esses
+opcionais e quebravam `npm ci` no Linux.
+
+## Migrações na inicialização
+
+- Fora de produção (`development`/`test`), `openDb` aplica migrações
+  pendentes automaticamente na inicialização (servidor e Netlify Function).
+- Em produção (`NODE_ENV=production`), **nada é alterado no schema sem ordem
+  explícita**: o padrão é `DB_AUTO_MIGRATE=false` e a inicialização apenas
+  **verifica** se o banco está na versão do código — se faltar migração, o
+  processo falha com instrução clara em vez de migrar em silêncio.
+- Para aplicar migrações no banco de homologação, rode explicitamente:
+  ```bash
+  DATABASE_DIALECT=postgres DATABASE_URL='<string do branch homolog>' npm run db:migrate
+  ```
+  (ou defina `DB_AUTO_MIGRATE=true` durante o primeiro deploy e remova depois).
+- Comportamento coberto por teste: em produção com banco desatualizado, a
+  inicialização recusa sem tocar no schema.
 
 ## Testes
 
 - `npm test` — suíte completa em SQLite (não depende de rede) + adaptador
   Netlify com SQLite em memória.
 - `npm run test:pg` — integração Postgres real (concorrência, capacidade,
-  check-in idempotente, sessões entre instâncias e o próprio adaptador
-  Netlify conectado ao Postgres, provando que as migrações rodam antes do
-  app). Requer `PG_TEST_DATABASE_URL` em banco descartável:
+  check-in idempotente, sessões entre instâncias, o adaptador Netlify
+  conectado ao Postgres e a guarda de migrações em produção). Requer
+  `PG_TEST_DATABASE_URL` em banco descartável:
   ```bash
   docker run -d --name eventpass-pg-test -e POSTGRES_PASSWORD=postgres -p 5433:5432 postgres:16
   PG_TEST_DATABASE_URL=postgres://postgres:postgres@localhost:5433/postgres PG_TEST_SSL=false npm run test:pg
   ```
   Localmente sem Postgres os testes PG são pulados automaticamente.
 
-### PG obrigatório na homologação
+### PG obrigatório no CI
 
-O CI tem um job `postgres` que roda `npm run test:pg` **sempre que a variável
-de repositório `PG_TEST_DATABASE_URL` estiver definida** (Settings → Variables
-and secrets → Variables). Aponte para um branch Neon **descartável** (a suíte
-trunca os dados a cada teste) — por exemplo `eventpass-homolog/ci`, criado e
-destruído no console do Neon. Com a variável definida, o check de PG passa a
-ser obrigatório para o merge. `PG_TEST_SSL` (padrão `true`) acompanha o TLS.
+O workflow de CI tem um job `postgres` que **sempre** roda `npm run test:pg`
+sobre um serviço **Postgres 16 descartável do próprio GitHub Actions** (container
+`services`, truncado a cada teste — nenhum banco real é usado). O job integra
+os checks do PR: com a proteção de branch exigindo todos os checks, falha de
+PostgreSQL **bloqueia o merge**. (Se a proteção de `main` não estiver ativa,
+ative-a exigindo os jobs `check` e `postgres`.)
+
+## Estimativa de consumo nos planos gratuitos (out/2026)
+
+Valores dos sites oficiais em outubro de 2026 — confira antes de decidir:
+
+- **Netlify Free — modelo por créditos:** 300 créditos/mês (sem cobrança
+  automática além disso; quando acabam, os deploys param até o ciclo seguinte).
+  Consumo informado: deploy de produção ≈ 15 créditos, banda ≈ 20 créditos/GB,
+  requisições web ≈ 2 créditos/10 mil. Para o EventPass: ~20 deploys/mês +
+  tráfego de eventos de 50–100 participantes fica bem abaixo dos 300 crédits.
+- **Neon Free:** 1 GB de armazenamento por projeto (20 GB na conta), 100
+  CU-hours de compute por projeto/mês, autosuspend após 5 min (scale to zero,
+  ideal para funções), até 2 CU. O banco do EventPass cabe em poucos MB e o
+  compute por requisição é de milissegundos — a homologação usa uma fração
+  mínima das 100 CU-hours.
 
 ## Teste de carga local (10/30/50 vus)
 
