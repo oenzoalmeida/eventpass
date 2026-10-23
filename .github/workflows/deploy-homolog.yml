@@ -13,9 +13,6 @@ concurrency:
   group: netlify-homolog
   cancel-in-progress: true
 
-env:
-  NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -28,10 +25,11 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - run: npm run build
       - name: Sem token configurado
-        if: env.NETLIFY_AUTH_TOKEN == ''
+        if: ${{ secrets.NETLIFY_AUTH_TOKEN == '' }}
         run: echo "::notice::Deploy pulado: configure o secret NETLIFY_AUTH_TOKEN no repositório."
       - name: Deploy
-        if: env.NETLIFY_AUTH_TOKEN != ''
+        if: ${{ secrets.NETLIFY_AUTH_TOKEN != '' }}
         run: node scripts/deploy-homolog.mjs
         env:
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID || 'e7bc4548-6a98-4d4a-b9ab-ca4929f719d1' }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
