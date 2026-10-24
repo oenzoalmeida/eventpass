@@ -4,7 +4,7 @@ import helmet from '@fastify/helmet';
 import cookie from '@fastify/cookie';
 import rateLimit from '@fastify/rate-limit';
 import type { Env } from './env.js';
-import type { Database } from './db/database.js';
+import type { DbClient } from './db/client.js';
 import { purgeExpiredSessions } from './auth/sessions.js';
 import { loadAdmin } from './auth/plugin.js';
 import { healthRoutes } from './routes/health.js';
@@ -14,7 +14,7 @@ import { adminAttendanceRoutes } from './routes/admin-attendance.js';
 import { publicRoutes } from './routes/public.js';
 import { serveWeb } from './static.js';
 
-export async function buildApp(env: Env, db: Database) {
+export async function buildApp(env: Env, db: DbClient) {
   const app = Fastify({
     logger: env.NODE_ENV === 'test' ? false : { level: 'info' },
     trustProxy: env.NODE_ENV === 'production',
@@ -51,7 +51,9 @@ export async function buildApp(env: Env, db: Database) {
   });
   app.addHook('preHandler', loadAdmin(db));
 
-  const purge = setInterval(() => purgeExpiredSessions(db), 3600_000);
+  const purge = setInterval(() => {
+    purgeExpiredSessions(db).catch((err) => app.log.error(err, 'falha ao limpar sessões'));
+  }, 3600_000);
   purge.unref();
   app.addHook('onClose', async () => clearInterval(purge));
 

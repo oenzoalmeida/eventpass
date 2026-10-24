@@ -28,9 +28,10 @@ export function authRoutes(env: Env) {
           });
         }
         const { email, password } = parsed.data;
-        const row = app.db
-          .prepare('SELECT id, email, name, password_hash FROM admins WHERE email = ?')
-          .get(email) as (AdminProfile & { password_hash: string }) | undefined;
+        const row = await app.db.get<AdminProfile & { password_hash: string }>(
+          'SELECT id, email, name, password_hash FROM admins WHERE email = ?',
+          [email],
+        );
 
         // Sempre verifica um hash, mesmo sem conta, para não revelar e-mails cadastrados pelo tempo.
         const ok = await verifyPassword(password, row?.password_hash ?? (await getDummyHash()));
@@ -40,7 +41,7 @@ export function authRoutes(env: Env) {
             .send({ error: 'invalid_credentials', message: 'E-mail ou senha incorretos.' });
         }
 
-        const { token, expiresAt } = createSession(app.db, row.id, env.SESSION_TTL_HOURS);
+        const { token, expiresAt } = await createSession(app.db, row.id, env.SESSION_TTL_HOURS);
         reply.setCookie(SESSION_COOKIE, token, { ...cookieOpts, expires: expiresAt });
         const admin: AdminProfile = { id: row.id, email: row.email, name: row.name };
         return { admin };
@@ -49,7 +50,7 @@ export function authRoutes(env: Env) {
 
     app.post('/api/auth/logout', async (request, reply) => {
       const token = request.cookies[SESSION_COOKIE];
-      if (token) deleteSession(app.db, token);
+      if (token) await deleteSession(app.db, token);
       reply.clearCookie(SESSION_COOKIE, cookieOpts);
       return reply.code(204).send();
     });

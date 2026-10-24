@@ -58,6 +58,8 @@ Abra http://localhost:5173 para a área pública e http://localhost:5173/admin p
 
 O CI no GitHub Actions roda typecheck, lint, testes e build em cada pull request.
 
+> **Homologação Neon/Netlify:** existe uma branch com a API rodando em Netlify Functions + PostgreSQL (Neon), mantendo a versão SQLite/servidor único desta branch como referência e rollback. Detalhes em [docs/MIGRACAO-NEON-NETLIFY.md](docs/MIGRACAO-NEON-NETLIFY.md).
+
 ## Produção
 
 ```bash

@@ -1,8 +1,8 @@
 import { loadEnv } from '../env.js';
-import { migrate, openDatabase } from '../db/database.js';
+import { migrateDb } from '../db/index.js';
 
 const env = loadEnv();
-const db = openDatabase(env.DATABASE_URL);
-const applied = migrate(db);
+const { db, applied } = await migrateDb(env);
 console.log(applied.length ? `Aplicadas: ${applied.join(', ')}` : 'Banco já está atualizado.');
-db.close();
+await db.close();
+process.exit(0);

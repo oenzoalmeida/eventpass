@@ -45,8 +45,12 @@ describe('integridade do banco', () => {
       INSERT INTO checkins (id, registration_id, checked_in_by) VALUES (1, 1, 1);
       INSERT INTO point_entries (participant_id, checkin_id, points) VALUES (1, 1, 10);
     `);
-    expect(() => db.exec('INSERT INTO checkins (registration_id, checked_in_by) VALUES (1, 1)')).toThrow(/UNIQUE/);
-    expect(() => db.exec('INSERT INTO point_entries (participant_id, checkin_id, points) VALUES (1, 1, 10)')).toThrow(/UNIQUE/);
+    expect(() =>
+      db.exec('INSERT INTO checkins (registration_id, checked_in_by) VALUES (1, 1)'),
+    ).toThrow(/UNIQUE/);
+    expect(() =>
+      db.exec('INSERT INTO point_entries (participant_id, checkin_id, points) VALUES (1, 1, 10)'),
+    ).toThrow(/UNIQUE/);
   });
 
   it('rejeita evento com vagas inválidas ou fim antes do início', () => {
