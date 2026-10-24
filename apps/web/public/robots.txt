@@ -1,0 +1,8 @@
+# EventPass: eventos públicos podem ser descobertos por buscadores.
+# Painéis, ingressos com token e endpoints de API não devem ser rastreados.
+# robots.txt não substitui autenticação, autorização ou cabeçalhos noindex.
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /ingresso/
+Disallow: /api/
