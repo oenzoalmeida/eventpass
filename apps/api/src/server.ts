@@ -1,17 +1,18 @@
 import { buildApp } from './app.js';
 import { loadEnv } from './env.js';
-import { migrate, openDatabase } from './db/database.js';
+import { openDb } from './db/index.js';
 
+// Servidor tradicional (SQLite ou Postgres). Na homologação Netlify, quem
+// atende as requisições é netlify/functions/api.ts usando o mesmo buildApp.
 const env = loadEnv();
-const db = openDatabase(env.DATABASE_URL);
-const applied = migrate(db);
+const { db, applied } = await openDb(env);
 
 const app = await buildApp(env, db);
 if (applied.length) app.log.info({ applied }, 'migrações aplicadas');
 
 const shutdown = async () => {
   await app.close();
-  db.close();
+  await db.close();
   process.exit(0);
 };
 process.on('SIGINT', shutdown);
