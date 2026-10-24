@@ -23,6 +23,16 @@ describe('servindo o frontend', () => {
     expect(page.body).toContain('EventPass');
     expect(page.headers['content-security-policy']).toContain("default-src 'self'");
 
+    const privateRoutes = ['/admin', '/admin/eventos', '/ingresso/token-ficticio?origem=teste'];
+    for (const url of privateRoutes) {
+      const privatePage = await app.inject({ method: 'GET', url });
+      expect(privatePage.statusCode).toBe(200);
+      expect(privatePage.headers['x-robots-tag']).toBe('noindex, nofollow, noarchive');
+      expect(privatePage.headers['cache-control']).toBe('no-store');
+    }
+
+    expect(page.headers['x-robots-tag']).toBeUndefined();
+
     const api = await app.inject({ method: 'GET', url: '/api/nao-existe' });
     expect(api.statusCode).toBe(404);
     expect(api.json().error).toBe('not_found');
