@@ -90,6 +90,10 @@ export function EventPage({ slug }: { slug: string }) {
               Confirmar inscrição
             </Button>
             <p className="text-xs text-fg-muted">
+              Seu nome e e-mail serão usados para gerenciar a inscrição e a identificação no evento.
+              Evite compartilhar o link do ingresso, pois ele permite acessar seu QR Code.
+            </p>
+            <p className="text-xs text-fg-muted">
               Você receberá um ingresso com QR Code. Guarde o link: ele é a sua entrada no evento.
             </p>
           </form>
