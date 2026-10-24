@@ -7,6 +7,8 @@ Revisão feita ao concluir as etapas 2 a 8. Cada item indica onde está implemen
 | Medida | Onde | Verificação |
 | --- | --- | --- |
 | Senhas com scrypt (N=2¹⁷, r=8, p=1) e salt aleatório | `api/src/auth/password.ts` | teste de login |
+| Custo do scrypt reduzido (`EP_SCRYPT_N`) só em teste; em produção a variável é ignorada e vale sempre o custo OWASP | `password.ts`, `vitest.config.ts` | `password.test.ts` |
+| Backup consistente com `VACUUM INTO` + `integrity_check`, seguro com a API no ar (WAL) | `scripts/backup.ts` | `backup.test.ts` |
 | Comparação em tempo constante (`timingSafeEqual`) | `password.ts` | revisão |
 | Mesma resposta e mesmo custo para e-mail inexistente e senha errada | `routes/auth.ts` (hash fictício) | `auth.test.ts` |
 | Limite de 10 tentativas de login a cada 15 min por IP | `routes/auth.ts` | `auth.test.ts` |
