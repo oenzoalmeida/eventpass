@@ -7,6 +7,7 @@ Organizadores publicam eventos, acompanham inscrições, validam presença por Q
 ## Funcionalidades
 
 **Organizadores (`/admin`)**
+
 - Login com sessão segura e limite de tentativas
 - Visão geral com totais de eventos, inscrições, check-ins e pontos
 - Criação e edição de eventos (rascunho → publicado → encerrado), com link público para compartilhar
@@ -16,11 +17,13 @@ Organizadores publicam eventos, acompanham inscrições, validam presença por Q
 - Exportação de inscrições em CSV (abre direto no Excel em português)
 
 **Participantes**
+
 - Lista de eventos abertos e ranking de participação (nomes abreviados)
 - Inscrição com controle de vagas e bloqueio de duplicidade
 - Ingresso com QR Code em `/ingresso/<código>`
 
 **Interface**
+
 - Modo claro, escuro ou do sistema
 - Navegação por teclado, rótulos e mensagens para leitores de tela
 - Layout responsivo, pensado para uso do check-in no celular
@@ -39,18 +42,19 @@ npm run dev            # API em http://127.0.0.1:3333 e web em http://localhost:
 
 Abra http://localhost:5173 para a área pública e http://localhost:5173/admin para o painel.
 
-| Comando | O que faz |
-| --- | --- |
-| `npm run dev` | API e web com recarga automática |
-| `npm run build` | Compila shared, API e web |
-| `npm start` | Roda a versão compilada: API servindo o frontend na porta `API_PORT` |
-| `npm test` | Testes da API e do frontend (Vitest) |
-| `npm run typecheck` | Verifica tipos em todos os pacotes |
-| `npm run lint` | ESLint com regras de acessibilidade (jsx-a11y) |
-| `npm run format` | Formata o código com Prettier |
-| `npm run admin:create` | Cria um administrador ou redefine a senha (encerra as sessões dele) |
-| `npm run db:migrate` | Aplica migrações pendentes (também rodam ao iniciar a API) |
-| `npm run db:seed` | Dados fictícios de demonstração (bloqueado em produção) |
+| Comando                | O que faz                                                            |
+| ---------------------- | -------------------------------------------------------------------- |
+| `npm run dev`          | API e web com recarga automática                                     |
+| `npm run build`        | Compila shared, API e web                                            |
+| `npm start`            | Roda a versão compilada: API servindo o frontend na porta `API_PORT` |
+| `npm test`             | Testes da API e do frontend (Vitest)                                 |
+| `npm run typecheck`    | Verifica tipos em todos os pacotes                                   |
+| `npm run lint`         | ESLint com regras de acessibilidade (jsx-a11y)                       |
+| `npm run format`       | Formata o código com Prettier                                        |
+| `npm run admin:create` | Cria um administrador ou redefine a senha (encerra as sessões dele)  |
+| `npm run db:migrate`   | Aplica migrações pendentes (também rodam ao iniciar a API)           |
+| `npm run db:seed`      | Dados fictícios de demonstração (bloqueado em produção)              |
+| `npm run db:backup`    | Backup consistente do banco (`VACUUM INTO` + `integrity_check`)      |
 
 O CI no GitHub Actions roda typecheck, lint, testes e build em cada pull request.
 
@@ -66,20 +70,20 @@ API_HOST=0.0.0.0 COOKIE_SECURE=true npm start
 Em produção a API serve o frontend compilado (`apps/web/dist`), então tudo roda em um único processo. Coloque um proxy com HTTPS na frente (Nginx, Caddy ou o da sua hospedagem). Isso funciona em qualquer servidor Node, inclusive no Replit.
 
 - **HTTPS é obrigatório** para o cookie de sessão (`COOKIE_SECURE=true`) e para a câmera no check-in, que os navegadores só liberam em conexão segura.
-- Faça **backup** do arquivo do banco (`DATABASE_URL`). Com o modo WAL, copie também os arquivos `-wal` e `-shm`, ou use `sqlite3 eventpass.db ".backup copia.db"`.
+- Faça **backup** regular do banco: `npm run db:backup` cria um snapshot consistente com `VACUUM INTO` (seguro com a API no ar) e valida com `integrity_check`. **Restauração**: pare a API, substitua o arquivo do banco (`DATABASE_URL`) pelo backup e reinicie — as migrações pendentes rodam na inicialização. Veja opções de hospedagem em [docs/HOSPEDAGEM.md](docs/HOSPEDAGEM.md).
 - Para criar o administrador sem interação, defina `ADMIN_EMAIL`, `ADMIN_NAME` e `ADMIN_PASSWORD` antes de `npm run admin:create`.
 
 ### Variáveis de ambiente
 
-| Variável | Padrão | Descrição |
-| --- | --- | --- |
-| `API_PORT` | `3333` | Porta HTTP |
-| `API_HOST` | `127.0.0.1` | Interface de rede (`0.0.0.0` para expor) |
-| `WEB_ORIGIN` | `http://localhost:5173` | Origem aceita pelo CORS em desenvolvimento |
-| `DATABASE_URL` | `./data/eventpass.db` | Arquivo SQLite (relativo a `apps/api`) |
-| `SESSION_TTL_HOURS` | `12` | Duração da sessão administrativa |
-| `COOKIE_SECURE` | `true` em produção | Cookie só por HTTPS |
-| `WEB_DIST` | vazio (`../web/dist` no `npm start`) | Frontend compilado servido pela API |
+| Variável            | Padrão                               | Descrição                                  |
+| ------------------- | ------------------------------------ | ------------------------------------------ |
+| `API_PORT`          | `3333`                               | Porta HTTP                                 |
+| `API_HOST`          | `127.0.0.1`                          | Interface de rede (`0.0.0.0` para expor)   |
+| `WEB_ORIGIN`        | `http://localhost:5173`              | Origem aceita pelo CORS em desenvolvimento |
+| `DATABASE_URL`      | `./data/eventpass.db`                | Arquivo SQLite (relativo a `apps/api`)     |
+| `SESSION_TTL_HOURS` | `12`                                 | Duração da sessão administrativa           |
+| `COOKIE_SECURE`     | `true` em produção                   | Cookie só por HTTPS                        |
+| `WEB_DIST`          | vazio (`../web/dist` no `npm start`) | Frontend compilado servido pela API        |
 
 ## Arquitetura
 
@@ -110,25 +114,25 @@ packages/
 
 Todas as rotas `/api/admin/*` exigem sessão de administrador.
 
-| Método | Rota | Descrição |
-| --- | --- | --- |
-| `POST` | `/api/auth/login` | Login (10 tentativas / 15 min por IP) |
-| `POST` | `/api/auth/logout` | Encerra a sessão |
-| `GET` | `/api/auth/me` | Administrador logado |
-| `GET` | `/api/admin/dashboard` | Totais e próximos eventos |
-| `GET`, `POST` | `/api/admin/events` | Lista / cria evento |
-| `GET`, `PUT`, `DELETE` | `/api/admin/events/:id` | Detalhe / edita / exclui (só rascunho sem inscrições) |
-| `POST` | `/api/admin/events/:id/status` | `draft`, `published` ou `closed` |
-| `GET` | `/api/admin/events/:id/registrations` | Inscrições com presença e pontos |
-| `POST` | `/api/admin/events/:id/registrations/:rid/cancel` | Cancela (só antes do check-in) |
-| `POST` | `/api/admin/events/:id/checkins` | Check-in por token do QR (idempotente) |
-| `GET` | `/api/admin/events/:id/report` | Indicadores do evento |
-| `GET` | `/api/admin/events/:id/registrations.csv` | Exportação CSV |
-| `GET` | `/api/public/events` | Eventos publicados e futuros |
-| `GET` | `/api/public/events/:slug` | Evento público |
-| `POST` | `/api/public/events/:slug/registrations` | Inscrição (20 / 10 min por IP) |
-| `GET` | `/api/public/tickets/:token` | Ingresso com QR Code (SVG) |
-| `GET` | `/api/public/leaderboard` | Top 10 por pontos |
+| Método                 | Rota                                              | Descrição                                             |
+| ---------------------- | ------------------------------------------------- | ----------------------------------------------------- |
+| `POST`                 | `/api/auth/login`                                 | Login (10 tentativas / 15 min por IP)                 |
+| `POST`                 | `/api/auth/logout`                                | Encerra a sessão                                      |
+| `GET`                  | `/api/auth/me`                                    | Administrador logado                                  |
+| `GET`                  | `/api/admin/dashboard`                            | Totais e próximos eventos                             |
+| `GET`, `POST`          | `/api/admin/events`                               | Lista / cria evento                                   |
+| `GET`, `PUT`, `DELETE` | `/api/admin/events/:id`                           | Detalhe / edita / exclui (só rascunho sem inscrições) |
+| `POST`                 | `/api/admin/events/:id/status`                    | `draft`, `published` ou `closed`                      |
+| `GET`                  | `/api/admin/events/:id/registrations`             | Inscrições com presença e pontos                      |
+| `POST`                 | `/api/admin/events/:id/registrations/:rid/cancel` | Cancela (só antes do check-in)                        |
+| `POST`                 | `/api/admin/events/:id/checkins`                  | Check-in por token do QR (idempotente)                |
+| `GET`                  | `/api/admin/events/:id/report`                    | Indicadores do evento                                 |
+| `GET`                  | `/api/admin/events/:id/registrations.csv`         | Exportação CSV                                        |
+| `GET`                  | `/api/public/events`                              | Eventos publicados e futuros                          |
+| `GET`                  | `/api/public/events/:slug`                        | Evento público                                        |
+| `POST`                 | `/api/public/events/:slug/registrations`          | Inscrição (20 / 10 min por IP)                        |
+| `GET`                  | `/api/public/tickets/:token`                      | Ingresso com QR Code (SVG)                            |
+| `GET`                  | `/api/public/leaderboard`                         | Top 10 por pontos                                     |
 
 ### Regras de pontuação
 
