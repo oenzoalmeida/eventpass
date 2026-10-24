@@ -5,7 +5,8 @@ import { fileURLToPath } from 'node:url';
 
 export type Database = DatabaseSync;
 
-const MIGRATIONS_DIR = join(dirname(fileURLToPath(import.meta.url)), '../../migrations');
+// Lazy: em bundle serverless (CJS) import.meta.url é undefined no topo do módulo.
+const migrationsDir = () => join(dirname(fileURLToPath(import.meta.url)), '../../migrations');
 
 /**
  * Abre o banco SQLite usando o módulo nativo do Node (sem dependência compilada).
@@ -34,7 +35,7 @@ export function transaction<T>(db: Database, fn: () => T): T {
 }
 
 /** Aplica, em ordem, os arquivos NNN_nome.sql ainda não registrados em schema_migrations. */
-export function migrate(db: Database, dir: string = MIGRATIONS_DIR): string[] {
+export function migrate(db: Database, dir: string = migrationsDir()): string[] {
   db.exec(`CREATE TABLE IF NOT EXISTS schema_migrations (
     name TEXT PRIMARY KEY,
     applied_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
