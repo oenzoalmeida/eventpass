@@ -1,0 +1,27 @@
+[Unit]
+Description=EventPass API and web
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=eventpass
+Group=eventpass
+WorkingDirectory=/opt/eventpass
+Environment=NODE_ENV=production
+Environment=API_HOST=127.0.0.1
+Environment=API_PORT=3333
+Environment=COOKIE_SECURE=true
+Environment=DATABASE_URL=/var/lib/eventpass/eventpass.db
+Environment=WEB_DIST=/opt/eventpass/apps/web/dist
+ExecStart=/usr/bin/npm run start -w @eventpass/api
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/eventpass
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

@@ -43,3 +43,11 @@ Thumbs.db
 # Local Netlify folder
 .netlify
 .deploy-netlify/
+<<<<<<< HEAD
+=======
+.mcp.json
+
+# Neon agent integration (local, machine-specific: symlinks e credenciais)
+.claude/
+.codex/
+>>>>>>> main

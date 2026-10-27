@@ -15,6 +15,14 @@ export async function serveWeb(app: FastifyInstance, distDir: string) {
     return;
   }
   await app.register(fastifyStatic, { root, wildcard: false, maxAge: '1h' });
+  app.addHook('onSend', async (request, reply, payload) => {
+    const path = request.url.split('?')[0] ?? '';
+    if (path === '/admin' || path.startsWith('/admin/') || path === '/ingresso' || path.startsWith('/ingresso/')) {
+      reply.header('x-robots-tag', 'noindex, nofollow, noarchive');
+      reply.header('cache-control', 'no-store');
+    }
+    return payload;
+  });
   app.setNotFoundHandler((request, reply) => {
     if (request.method !== 'GET' || request.url.startsWith('/api/')) {
       return reply.code(404).send({ error: 'not_found', message: 'Rota não encontrada.' });
