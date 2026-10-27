@@ -157,6 +157,7 @@ describePg('PostgreSQL (dialect do Neon)', () => {
       headers: { cookie },
       payload: eventPayload({ capacity: 10, checkinPoints: 20 }),
     });
+    expect(create.statusCode, JSON.stringify(create.json())).toBe(201);
     const { id, slug } = create.json().event as { id: number; slug: string };
     await app.inject({
       method: 'POST',
@@ -182,7 +183,11 @@ describePg('PostgreSQL (dialect do Neon)', () => {
         payload: { token },
       });
 
-    const first = (await (await scan()).json()) as {
+    const firstRes = await scan();
+    // Falha com status + corpo se o scan inicial receber erro transiente
+    // (flake de CI era mascarado por alreadyCheckedIn undefined).
+    expect(firstRes.statusCode, JSON.stringify(firstRes.json())).toBe(200);
+    const first = firstRes.json() as {
       alreadyCheckedIn: boolean;
       pointsAwarded: number;
     };
