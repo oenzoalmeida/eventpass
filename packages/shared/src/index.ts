@@ -36,7 +36,7 @@ export const adminPasswordSchema = z
 export const apiErrorSchema = z.object({
   error: z.string(),
   message: z.string(),
-  issues: z.record(z.array(z.string())).optional(),
+  issues: z.record(z.string(), z.array(z.string())).optional(),
 });
 export type ApiError = z.infer<typeof apiErrorSchema>;
 
@@ -65,7 +65,7 @@ const eventFields = {
   startsAt: isoDate,
   endsAt: isoDate,
   capacity: z.coerce
-    .number({ invalid_type_error: 'Informe o número de vagas.' })
+    .number({ error: 'Informe o número de vagas.' })
     .int('Use um número inteiro.')
     .min(1, 'O evento precisa de pelo menos 1 vaga.')
     .max(100_000),
