@@ -43,11 +43,7 @@ Diferencial do SQLite local: nenhum além de `DATABASE_DIALECT/URL`.
 
 ## Migração dos dados (SQLite → Neon)
 
-<<<<<<< HEAD
-As migrações do schema rodam sozinhas na primeira conexão (`schema_migrations`).
-=======
 Em produção, as migrações **não** são aplicadas automaticamente. Execute `npm run db:migrate` explicitamente no banco de homologação, após conferir o destino e criar um backup. Em desenvolvimento/teste, a aplicação pode aplicar migrações na primeira conexão (`schema_migrations`).
->>>>>>> main
 Para copiar dados de um banco SQLite existente:
 
 1. Autorize a escrita no branch `homolog` do Neon.
@@ -66,13 +62,8 @@ Para copiar dados de um banco SQLite existente:
 
 - **Neon:** restore point-in-time de 7 dias no plano free (console → branch →
   History/Reset). Também é possível criar branch de backup.
-<<<<<<< HEAD
-- **pg_dump:** `pg_dump "$DATABASE_URL" -Fc -f eventpass-homolog.dump` e
-  `pg_restore -d "$DATABASE_URL" --clean eventpass-homolog.dump`.
-=======
 - **pg_dump:** use uma conexão direta com permissões mínimas para exportar um backup consistente: `pg_dump "$BACKUP_DATABASE_URL" -Fc -f eventpass-homolog.dump`.
 - **Teste de restauração:** restaure **somente em um banco descartável e isolado**, usando `pg_restore --dbname="$RESTORE_TEST_DATABASE_URL" --no-owner --no-acl eventpass-homolog.dump`. Verifique tabelas, contagens e fluxos críticos antes de considerar o backup recuperável. Nunca use a URL do banco de produção ou homologação como `RESTORE_TEST_DATABASE_URL`; não execute `pg_restore --clean` em bancos ativos.
->>>>>>> main
 - **SQLite (referência):** `npm run db:backup` (VACUUM INTO + integrity_check).
 
 ## Rollback para a versão SQLite
@@ -111,11 +102,7 @@ opcionais e quebravam `npm ci` no Linux.
   ```bash
   DATABASE_DIALECT=postgres DATABASE_URL='<string do branch homolog>' npm run db:migrate
   ```
-<<<<<<< HEAD
-  (ou defina `DB_AUTO_MIGRATE=true` durante o primeiro deploy e remova depois).
-=======
   Não habilite `DB_AUTO_MIGRATE=true` no deploy de produção para contornar essa etapa.
->>>>>>> main
 - Comportamento coberto por teste: em produção com banco desatualizado, a
   inicialização recusa sem tocar no schema.
 
