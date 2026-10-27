@@ -55,8 +55,10 @@ export async function buildApp(env: Env, db: Database) {
     // Limpeza oportunista: sem cron no serverless, evita crescimento ilimitado
     // de sessões expiradas e janelas de rate limit antigas.
     if (Math.random() < 0.02) {
+      // sessions.expires_at é TEXT (ISO 8601): comparar com parâmetro string,
+      // não com now() — `text <= timestamptz` lança 42883 e derrubava a requisição.
       await db.query('DELETE FROM rate_limits WHERE expires_at <= now()');
-      await db.query('DELETE FROM sessions WHERE expires_at <= now()');
+      await db.query('DELETE FROM sessions WHERE expires_at <= $1', [new Date().toISOString()]);
     }
     if (result.rows[0].hits > max)
       return reply
