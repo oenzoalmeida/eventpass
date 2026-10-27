@@ -50,6 +50,14 @@ export async function buildApp(env: Env, db: DbClient) {
     }
   });
   app.addHook('preHandler', loadAdmin(db));
+  // Erros transientes (ex.: conexão Postgres) retornam o mesmo contrato
+  // {error, message} das respostas de erro intencionais, com log do causador.
+  app.setErrorHandler((err, request, reply) => {
+    // Erros do framework (ex.: 429 do rate limit) seguem o fluxo padrão.
+    if (err.statusCode && err.statusCode !== 500) throw err;
+    request.log.error(err, 'erro não tratado');
+    return reply.code(500).send({ error: 'internal_error', message: 'Erro interno. Tente novamente.' });
+  });
 
   const purge = setInterval(() => {
     purgeExpiredSessions(db).catch((err) => app.log.error(err, 'falha ao limpar sessões'));
