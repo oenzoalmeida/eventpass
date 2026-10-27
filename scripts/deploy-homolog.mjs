@@ -15,6 +15,7 @@
  */
 import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
+import { delimiter, join } from 'node:path';
 
 const SITE_ID = process.env.NETLIFY_SITE_ID || 'e7bc4548-6a98-4d4a-b9ab-ca4929f719d1';
 const OUT = '.deploy-netlify';
@@ -56,11 +57,15 @@ if (process.argv.includes('--skip-publish')) {
   console.log(`Pacote montado em ${OUT}/ (publicação pulada com --skip-publish).`);
 } else {
   console.log('Publicando em https://incomparable-panda-7984de.netlify.app (site ' + SITE_ID + ')');
+  // CLI versionado em devDependencies: roda do node_modules do repo (raiz),
+  // nunca baixa versão não pinada do registro.
+  const binDir = join(process.cwd(), 'node_modules', '.bin');
   execSync(
-    `netlify deploy --prod --site ${SITE_ID} --dir dist --functions functions --message "homolog"`,
+    'npx --no-install netlify deploy --prod --site ' + JSON.stringify(SITE_ID) + ' --dir dist --functions functions --message "homolog"',
     {
       cwd: OUT,
       stdio: 'inherit',
+      env: { ...process.env, PATH: binDir + delimiter + process.env.PATH },
     },
   );
   rmSync(OUT, { recursive: true, force: true });
