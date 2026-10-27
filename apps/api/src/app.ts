@@ -52,6 +52,12 @@ export async function buildApp(env: Env, db: Database) {
       'INSERT INTO rate_limits(key, window_id, hits, expires_at) VALUES ($1,$2,1,$3) ON CONFLICT (key,window_id) DO UPDATE SET hits = rate_limits.hits + 1 RETURNING hits',
       [key, windowId, new Date((windowId + 1) * windowMs)],
     );
+    // Limpeza oportunista: sem cron no serverless, evita crescimento ilimitado
+    // de sessões expiradas e janelas de rate limit antigas.
+    if (Math.random() < 0.02) {
+      await db.query('DELETE FROM rate_limits WHERE expires_at <= now()');
+      await db.query('DELETE FROM sessions WHERE expires_at <= now()');
+    }
     if (result.rows[0].hits > max)
       return reply
         .code(429)
@@ -75,13 +81,20 @@ export async function buildApp(env: Env, db: Database) {
   });
   // Bloqueia requisições que alteram estado sem JSON: com cookie SameSite=Strict,
   // isso fecha a porta para CSRF via formulários HTML de outros sites.
+  // Aceita a origem configurada e os domínios fornecidos pela Vercel
+  // (deploy corrente e domínio de produção do projeto).
+  const allowedOrigins = [
+    env.WEB_ORIGIN,
+    ...(process.env.VERCEL_URL ? ['https://' + process.env.VERCEL_URL] : []),
+    ...(process.env.VERCEL_PROJECT_PRODUCTION_DOMAIN
+      ? ['https://' + process.env.VERCEL_PROJECT_PRODUCTION_DOMAIN]
+      : []),
+  ];
   app.addHook('onRequest', async (request, reply) => {
     if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method)) {
       if (
         request.headers['sec-fetch-site'] === 'cross-site' ||
-        (request.headers.origin &&
-          request.headers.origin !== env.WEB_ORIGIN &&
-          request.headers.origin !== 'https://' + process.env.VERCEL_URL)
+        (request.headers.origin && !allowedOrigins.includes(request.headers.origin))
       )
         return reply.code(403).send({ error: 'forbidden', message: 'Origem não permitida.' });
       const type = request.headers['content-type'] ?? '';
