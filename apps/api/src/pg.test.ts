@@ -170,6 +170,9 @@ describePg('PostgreSQL (dialect do Neon)', () => {
       payload: { name: 'Ana Souza', email: 'ana@exemplo.test' },
     });
     const token = reg.json().ticketToken as string;
+    // Falha com a causa real se a inscrição não sair 201 (flake em CI era
+    // mascarado por 'expected undefined to be false').
+    expect(reg.statusCode, JSON.stringify(reg.json())).toBe(201);
 
     const scan = async () =>
       app.inject({
