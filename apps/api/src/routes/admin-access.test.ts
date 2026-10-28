@@ -33,4 +33,14 @@ describe('admin access boundary', () => {
       expect(response.json().error).toBe('unauthorized');
     });
   }
+
+  it('rejects a fabricated session cookie', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: '/api/admin/dashboard',
+      headers: { cookie: 'ep_session=invalid-session-token' },
+    });
+    expect(response.statusCode).toBe(401);
+    expect(response.json().error).toBe('unauthorized');
+  });
 });
