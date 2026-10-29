@@ -168,3 +168,11 @@ Veja [docs/SEGURANCA.md](docs/SEGURANCA.md) para as medidas adotadas e a auditor
 - Nunca inclua senhas, tokens, dados pessoais ou arquivos `.env` no Git.
 - Use `.env.example` apenas para documentar nomes de variáveis.
 - Use dados fictícios em demonstrações e testes (`npm run db:seed`).
+
+## Telas
+
+| Área pública de eventos | Acesso ao painel |
+| --- | --- |
+| ![Área pública com próximos eventos e ranking](docs/screenshots/area-publica.png) | ![Login do painel do organizador](docs/screenshots/painel-login.png) |
+
+Capturas de uma execução local com dados fictícios (`npm run db:seed`).
