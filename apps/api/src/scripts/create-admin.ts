@@ -34,13 +34,13 @@ if (!password.success) {
 
 const hash = await hashPassword(password.data);
 await db.run(
-  `INSERT INTO admins (email, name, password_hash) VALUES (?, ?, ?)
-   ON CONFLICT(email) DO UPDATE SET name = excluded.name, password_hash = excluded.password_hash`,
+  `INSERT INTO admins (email, name, password_hash, must_change_password) VALUES (?, ?, ?, 1)
+   ON CONFLICT(email) DO UPDATE SET name = excluded.name, password_hash = excluded.password_hash, must_change_password = 1`,
   [email, name, hash],
 );
 // Redefinir a senha encerra as sessões existentes.
 await db.run('DELETE FROM sessions WHERE admin_id = (SELECT id FROM admins WHERE email = ?)', [
   email,
 ]);
-console.log(`Administrador ${email} pronto.`);
+console.log(`Administrador ${email} pronto (troca de senha obrigatória no primeiro acesso).`);
 await db.close();
