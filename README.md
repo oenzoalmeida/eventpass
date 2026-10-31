@@ -4,6 +4,10 @@ Sistema web para organizar eventos, inscrições, controle de presença e gamifi
 
 Organizadores publicam eventos, acompanham inscrições, validam presença por QR Code e exportam relatórios. Participantes se inscrevem em páginas públicas, recebem um ingresso com QR Code e acumulam pontos **somente após um check-in válido**.
 
+## Demonstração
+
+Produção: <https://eventpass.3.149.24.102.sslip.io> — área pública com inscrições e ranking de participação; painel de organizadores em `/admin`.
+
 ## Funcionalidades
 
 **Organizadores (`/admin`)**
@@ -27,6 +31,12 @@ Organizadores publicam eventos, acompanham inscrições, validam presença por Q
 - Modo claro, escuro ou do sistema
 - Navegação por teclado, rótulos e mensagens para leitores de tela
 - Layout responsivo, pensado para uso do check-in no celular
+
+## Capturas de tela
+
+| Área pública | Entrada do painel |
+| --- | --- |
+| ![Página pública com próximos eventos e ranking de participação](docs/screenshots/area-publica.png) | ![Tela de entrada do painel de organizadores](docs/screenshots/entrada-painel.png) |
 
 ## Desenvolvimento local
 
