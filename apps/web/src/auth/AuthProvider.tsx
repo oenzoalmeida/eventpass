@@ -1,5 +1,5 @@
 import { createContext, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
-import type { AdminProfile, LoginRequest } from '@eventpass/shared';
+import type { AdminProfile, ChangePasswordRequest, LoginRequest } from '@eventpass/shared';
 import { api, ApiRequestError } from '../lib/api';
 
 type Status = 'loading' | 'authenticated' | 'anonymous';
@@ -9,6 +9,7 @@ interface AuthContextValue {
   admin: AdminProfile | null;
   login: (data: LoginRequest) => Promise<void>;
   logout: () => Promise<void>;
+  changePassword: (data: ChangePasswordRequest) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
@@ -51,6 +52,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const value = useMemo(() => ({ status, admin, login, logout }), [status, admin, login, logout]);
+  const changePassword = useCallback(async (data: ChangePasswordRequest) => {
+    const a = await api.changePassword(data);
+    setAdmin(a);
+    setStatus('authenticated');
+  }, []);
+
+  const value = useMemo(
+    () => ({ status, admin, login, logout, changePassword }),
+    [status, admin, login, logout, changePassword],
+  );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

@@ -20,9 +20,23 @@ export function loadAdmin(db: DbClient) {
   };
 }
 
+// Com senha temporária, só estes caminhos respondem; todo o resto do painel exige a troca.
+const PASSWORD_CHANGE_ALLOWED = new Set([
+  '/api/auth/change-password',
+  '/api/auth/logout',
+  '/api/auth/me',
+]);
+
 /** preHandler: bloqueia rotas administrativas sem sessão válida. */
 export async function requireAdmin(request: FastifyRequest, reply: FastifyReply) {
   if (!request.admin) {
     return reply.code(401).send({ error: 'unauthorized', message: 'Faça login para continuar.' });
+  }
+  const path = (request.raw.url ?? '').split('?')[0] ?? '';
+  if (request.admin.mustChangePassword && !PASSWORD_CHANGE_ALLOWED.has(path)) {
+    return reply.code(403).send({
+      error: 'password_change_required',
+      message: 'Defina uma nova senha para continuar.',
+    });
   }
 }

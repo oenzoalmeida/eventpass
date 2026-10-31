@@ -8,6 +8,7 @@ import { NewEventPage } from './admin/NewEventPage';
 import { EventDetailPage } from './admin/EventDetailPage';
 import { DesignSystemPage } from './pages/DesignSystemPage';
 import { LoginPage } from './pages/LoginPage';
+import { ChangePasswordPage } from './pages/ChangePasswordPage';
 import { HomePage } from './public/HomePage';
 import { EventPage } from './public/EventPage';
 import { TicketPage } from './public/TicketPage';
@@ -24,9 +25,10 @@ function NotFound() {
 }
 
 function AdminRoutes({ path }: { path: string }) {
-  const { status } = useAuth();
+  const { status, admin } = useAuth();
   if (status === 'loading') return <Loading />;
   if (status === 'anonymous') return <LoginPage />;
+  if (admin?.mustChangePassword) return <ChangePasswordPage />;
 
   let page = <NotFound />;
   let m: Record<string, string> | null;
