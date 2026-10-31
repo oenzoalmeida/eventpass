@@ -12,6 +12,12 @@ export type HealthResponse = z.infer<typeof healthResponseSchema>;
 
 export { z };
 
+/** Regras mínimas de senha para contas administrativas. */
+export const adminPasswordSchema = z
+  .string()
+  .min(12, 'A senha precisa ter pelo menos 12 caracteres.')
+  .max(256);
+
 /** Login do administrador. */
 export const loginRequestSchema = z.object({
   email: z.string().trim().toLowerCase().email('Informe um e-mail válido.').max(254),
@@ -23,14 +29,17 @@ export const adminProfileSchema = z.object({
   id: z.number().int(),
   email: z.string().email(),
   name: z.string(),
+  mustChangePassword: z.boolean(),
 });
 export type AdminProfile = z.infer<typeof adminProfileSchema>;
 
-/** Regras mínimas de senha para contas administrativas. */
-export const adminPasswordSchema = z
-  .string()
-  .min(12, 'A senha precisa ter pelo menos 12 caracteres.')
-  .max(256);
+/** Troca da senha temporária (ou voluntária) pelo admin autenticado. */
+export const changePasswordRequestSchema = z.object({
+  currentPassword: z.string().min(1, 'Informe a senha atual.').max(256),
+  newPassword: adminPasswordSchema,
+});
+export type ChangePasswordRequest = z.infer<typeof changePasswordRequestSchema>;
+
 
 /** Formato padrão de erro da API. */
 export const apiErrorSchema = z.object({
