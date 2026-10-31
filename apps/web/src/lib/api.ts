@@ -12,6 +12,7 @@ import {
   registrationCreatedSchema,
   ticketSchema,
   type AdminProfile,
+  type ChangePasswordRequest,
   type EventInput,
   type EventStatus,
   type LoginRequest,
@@ -69,6 +70,8 @@ export const api = {
   me: async (): Promise<AdminProfile> => (await request('/api/auth/me', adminEnvelope)).admin,
   login: async (data: LoginRequest) => (await request('/api/auth/login', adminEnvelope, json('POST', data))).admin,
   logout: () => request('/api/auth/logout', null, json('POST')),
+  changePassword: async (data: ChangePasswordRequest) =>
+    (await request('/api/auth/change-password', adminEnvelope, json('POST', data))).admin,
 
   // Admin: eventos
   dashboard: () => request('/api/admin/dashboard', dashboardSummarySchema),
