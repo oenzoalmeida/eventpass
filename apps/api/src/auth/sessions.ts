@@ -18,13 +18,19 @@ export async function createSession(db: DbClient, adminId: number, ttlHours: num
 }
 
 export async function findSessionAdmin(db: DbClient, token: string): Promise<AdminProfile | null> {
-  const row = await db.get<AdminProfile>(
-    `SELECT a.id, a.email, a.name FROM sessions s
+  const row = await db.get<{ id: number; email: string; name: string; must_change_password: number | boolean }>(
+    `SELECT a.id, a.email, a.name, a.must_change_password FROM sessions s
      JOIN admins a ON a.id = s.admin_id
      WHERE s.token_hash = ? AND s.expires_at > ?`,
     [sha256(token), new Date().toISOString()],
   );
-  return row ?? null;
+  if (!row) return null;
+  return {
+    id: row.id,
+    email: row.email,
+    name: row.name,
+    mustChangePassword: row.must_change_password === 1 || row.must_change_password === true,
+  };
 }
 
 export async function deleteSession(db: DbClient, token: string): Promise<void> {
