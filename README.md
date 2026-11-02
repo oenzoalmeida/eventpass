@@ -8,6 +8,8 @@ Organizadores publicam eventos, acompanham inscrições, validam presença por Q
 
 Produção: <https://eventpass.3.149.24.102.sslip.io> — área pública com inscrições e ranking de participação; painel de organizadores em `/admin`.
 
+**Não há eventos abertos no momento?** A página `/demo` mostra a jornada completa (evento → inscrição → ingresso → check-in → ranking) com dados fictícios gerados no navegador, sem criar nada no ambiente real.
+
 ## Funcionalidades
 
 **Organizadores (`/admin`)**
@@ -24,7 +26,8 @@ Produção: <https://eventpass.3.149.24.102.sslip.io> — área pública com ins
 
 - Lista de eventos abertos e ranking de participação (nomes abreviados)
 - Inscrição com controle de vagas e bloqueio de duplicidade
-- Ingresso com QR Code em `/ingresso/<código>`
+- Ingresso com QR Code em `/ingresso/<código>`, com opção de imprimir/salvar em PDF
+- Nenhum ingresso é enviado por e-mail: o link do ingresso é a única forma de acesso e a própria página orienta a guardá-lo (favoritos, captura de tela ou impressão). Recuperação por e-mail é uma etapa futura, com regras de titularidade a definir
 
 **Interface**
 
