@@ -9,6 +9,7 @@ import { EventDetailPage } from './admin/EventDetailPage';
 import { DesignSystemPage } from './pages/DesignSystemPage';
 import { LoginPage } from './pages/LoginPage';
 import { ChangePasswordPage } from './pages/ChangePasswordPage';
+import { DemoPage } from './public/DemoPage';
 import { HomePage } from './public/HomePage';
 import { EventPage } from './public/EventPage';
 import { TicketPage } from './public/TicketPage';
@@ -50,6 +51,7 @@ function AdminRoutes({ path }: { path: string }) {
 function Routes() {
   const { path } = useRouter();
   if (path === '/') return <HomePage />;
+  if (path === '/demo') return <DemoPage />;
   if (path.startsWith('/admin')) return <AdminRoutes path={path} />;
   let m = matchPath('/e/:slug', path);
   if (m) return <EventPage key={m.slug} slug={m.slug!} />;
@@ -71,7 +73,7 @@ export function App() {
       >
         Pular para o conteúdo
       </a>
-      <header className="border-b border-border bg-surface">
+      <header className="no-print border-b border-border bg-surface">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
           <Link href={admin && inAdmin ? '/admin' : '/'} className="text-lg font-bold tracking-tight">
             Event<span className="text-primary">Pass</span>

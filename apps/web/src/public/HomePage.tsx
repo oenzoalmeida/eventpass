@@ -19,7 +19,16 @@ export function HomePage() {
         {events.status === 'error' && <ErrorState error={events.error} onRetry={events.reload} />}
         {events.status === 'success' &&
           (events.data.length === 0 ? (
-            <EmptyState title="Nenhum evento aberto no momento">Volte em breve!</EmptyState>
+            <EmptyState title="Nenhum evento aberto no momento">
+              <p>Volte em breve!</p>
+              <p className="mt-3">
+                Quer conhecer a jornada?{' '}
+                <Link href="/demo" className="text-primary underline">
+                  Veja uma demonstração com dados fictícios
+                </Link>
+                .
+              </p>
+            </EmptyState>
           ) : (
             <ul className="grid gap-4 sm:grid-cols-2">
               {events.data.map((e) => (

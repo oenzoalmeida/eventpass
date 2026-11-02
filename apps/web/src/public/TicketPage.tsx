@@ -1,4 +1,4 @@
-import { Alert, Card, ErrorState, Loading } from '../components/ui';
+import { Alert, Button, Card, ErrorState, Loading } from '../components/ui';
 import { api, ApiRequestError } from '../lib/api';
 import { formatDateTime, formatRange } from '../lib/format';
 import { useAsync } from '../lib/useAsync';
@@ -49,14 +49,21 @@ export function TicketPage({ token }: { token: string }) {
                 Check-in em {formatDateTime(ticket.checkedInAt)}.
               </Alert>
             ) : (
-              <p className="mt-4 text-sm text-fg-muted">
-                Apresente este QR Code na entrada. Salve esta página nos favoritos ou faça uma captura de tela.
-              </p>
+              <div className="mt-4 space-y-3 text-sm text-fg-muted">
+                <p>
+                  Apresente este QR Code na entrada. Não enviamos o ingresso por e-mail: este link é a sua
+                  única forma de acessá-lo.
+                </p>
+                <p>Salve a página nos favoritos ou faça uma captura de tela para não perder o acesso.</p>
+                <Button variant="secondary" size="sm" className="no-print" onClick={() => window.print()}>
+                  Imprimir ou salvar em PDF
+                </Button>
+              </div>
             )}
           </>
         )}
       </Card>
-      <p className="mt-6 text-center text-sm">
+      <p className="no-print mt-6 text-center text-sm">
         <Link href={`/e/${ticket.event.slug}`} className="text-primary underline">
           Ver página do evento
         </Link>
