@@ -15,7 +15,9 @@
   --ep-primary-hover: oklch(0.46 0.2 275);
   --ep-primary-fg: oklch(0.99 0 0);
   --ep-success: oklch(0.55 0.15 150);
+  --ep-success-strong: oklch(0.45 0.13 150);
   --ep-warning: oklch(0.68 0.15 75);
+  --ep-warning-strong: oklch(0.50 0.13 75);
   --ep-danger: oklch(0.55 0.21 25);
   --ep-ring: oklch(0.6 0.2 275);
 }
@@ -31,7 +33,9 @@
   --ep-primary-hover: oklch(0.76 0.14 275);
   --ep-primary-fg: oklch(0.17 0.02 265);
   --ep-success: oklch(0.72 0.15 150);
+  --ep-success-strong: oklch(0.72 0.15 150);
   --ep-warning: oklch(0.8 0.14 80);
+  --ep-warning-strong: oklch(0.8 0.14 80);
   --ep-danger: oklch(0.7 0.17 25);
   --ep-ring: oklch(0.75 0.15 275);
   color-scheme: dark;
@@ -48,6 +52,8 @@
   --color-primary-hover: var(--ep-primary-hover);
   --color-primary-fg: var(--ep-primary-fg);
   --color-success: var(--ep-success);
+  --color-success-strong: var(--ep-success-strong);
+  --color-warning-strong: var(--ep-warning-strong);
   --color-warning: var(--ep-warning);
   --color-danger: var(--ep-danger);
   --color-ring: var(--ep-ring);
