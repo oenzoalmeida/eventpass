@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Alert, Button, Card, ErrorState, Loading } from '../components/ui';
 import { api, ApiRequestError } from '../lib/api';
 import { formatDateTime, formatRange } from '../lib/format';
@@ -6,6 +7,16 @@ import { Link } from '../router/router';
 
 export function TicketPage({ token }: { token: string }) {
   const { status, data: ticket, error, reload } = useAsync(() => api.ticket(token), [token]);
+  const [linkFeedback, setLinkFeedback] = useState<string | null>(null);
+
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setLinkFeedback('Link copiado. Guarde em um lugar seguro e não compartilhe com outras pessoas.');
+    } catch {
+      setLinkFeedback('Não foi possível copiar automaticamente. Salve esta página nos favoritos ou use a opção de imprimir.');
+    }
+  }
 
   if (status === 'loading') return <Loading label="Carregando ingresso…" />;
   if (status === 'error') {
@@ -54,10 +65,16 @@ export function TicketPage({ token }: { token: string }) {
                   Apresente este QR Code na entrada. Não enviamos o ingresso por e-mail: este link é a sua
                   única forma de acessá-lo.
                 </p>
-                <p>Salve a página nos favoritos ou faça uma captura de tela para não perder o acesso.</p>
-                <Button variant="secondary" size="sm" className="no-print" onClick={() => window.print()}>
-                  Imprimir ou salvar em PDF
-                </Button>
+                <p>Guarde o acesso nos favoritos, copie o link ou faça uma captura de tela. Não compartilhe com outras pessoas.</p>
+                <div className="no-print flex flex-wrap justify-center gap-2">
+                  <Button variant="secondary" size="sm" onClick={() => void copyLink()}>
+                    Copiar link do ingresso
+                  </Button>
+                  <Button variant="secondary" size="sm" onClick={() => window.print()}>
+                    Imprimir ou salvar em PDF
+                  </Button>
+                </div>
+                {linkFeedback ? <p role="status" className="text-sm text-fg-muted">{linkFeedback}</p> : null}
               </div>
             )}
           </>
