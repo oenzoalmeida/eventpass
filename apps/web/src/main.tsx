@@ -4,6 +4,7 @@ import { ThemeProvider } from './theme/ThemeProvider';
 import { AuthProvider } from './auth/AuthProvider';
 import { RouterProvider } from './router/router';
 import { App } from './App';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import './index.css';
 
 const root = document.getElementById('root');
@@ -14,7 +15,9 @@ createRoot(root).render(
     <ThemeProvider>
       <RouterProvider>
         <AuthProvider>
-          <App />
+          <ErrorBoundary>
+            <App />
+          </ErrorBoundary>
         </AuthProvider>
       </RouterProvider>
     </ThemeProvider>

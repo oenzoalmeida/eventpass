@@ -54,7 +54,27 @@ export async function buildApp(env: Env, db: DbClient) {
   // Erros transientes (ex.: conexão Postgres) retornam o mesmo contrato
   // {error, message} das respostas de erro intencionais, com log do causador.
   app.setErrorHandler((err: FastifyError, request, reply) => {
-    // Erros do framework (ex.: 429 do rate limit) seguem o fluxo padrão.
+    // Erros esperados do framework seguem o mesmo contrato pt-BR das respostas
+    // intencionais: o frontend mostra `message` diretamente para o usuário.
+    if (err.statusCode === 429) {
+      return reply.code(429).send({
+        error: 'rate_limited',
+        message: 'Muitas tentativas. Aguarde alguns minutos e tente novamente.',
+      });
+    }
+    if (err.statusCode === 400) {
+      return reply.code(400).send({
+        error: 'invalid_request',
+        message: 'Requisição inválida. Verifique os dados enviados.',
+      });
+    }
+    if (err.statusCode === 413) {
+      return reply.code(413).send({
+        error: 'payload_too_large',
+        message: 'Os dados enviados são grandes demais.',
+      });
+    }
+    // Demais erros do framework (ex.: 415 de mídia) seguem o fluxo padrão.
     if (err.statusCode && err.statusCode !== 500) throw err;
     request.log.error(err, 'erro não tratado');
     return reply.code(500).send({ error: 'internal_error', message: 'Erro interno. Tente novamente.' });
