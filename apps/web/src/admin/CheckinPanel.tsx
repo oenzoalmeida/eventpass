@@ -15,10 +15,13 @@ export function CheckinPanel({ event, onCheckin }: { event: AdminEvent; onChecki
   const [busy, setBusy] = useState(false);
   const [history, setHistory] = useState<CheckinResult[]>([]);
   const manualRef = useRef<HTMLInputElement>(null);
+  const requestInFlight = useRef(false);
 
   const submit = useCallback(
     async (token: string) => {
-      if (!token.trim()) return;
+      if (!token.trim() || requestInFlight.current) return;
+      // A ref blocks rapid double submissions before React can render busy=true.
+      requestInFlight.current = true;
       setBusy(true);
       try {
         const result = await api.checkin(event.id, token);
@@ -32,6 +35,7 @@ export function CheckinPanel({ event, onCheckin }: { event: AdminEvent; onChecki
         setFeedback({ kind: 'error', message: err instanceof ApiRequestError ? err.message : 'Falha ao registrar presença.' });
         navigator.vibrate?.([200, 100, 200]);
       } finally {
+        requestInFlight.current = false;
         setBusy(false);
       }
     },
