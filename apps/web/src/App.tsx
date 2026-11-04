@@ -78,7 +78,7 @@ export function App() {
           <Link href={admin && inAdmin ? '/admin' : '/'} className="text-lg font-bold tracking-tight">
             Event<span className="text-primary">Pass</span>
           </Link>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
             {admin ? (
               <>
                 {!inAdmin && (
