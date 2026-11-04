@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { RouterProvider } from '../router/router';
 import { TicketPage } from './TicketPage';
 
@@ -50,6 +50,31 @@ describe('TicketPage', () => {
     botao.click();
     expect(printSpy).toHaveBeenCalled();
     printSpy.mockRestore();
+  });
+
+  it('permite copiar o link do ingresso e orienta a mantê-lo privado', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    const originalClipboard = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText },
+    });
+    try {
+      mockTicket();
+      render(
+        <RouterProvider>
+          <TicketPage token="tok123" />
+        </RouterProvider>,
+      );
+      await screen.findByRole('heading', { name: 'Workshop de React' });
+      fireEvent.click(screen.getByRole('button', { name: 'Copiar link do ingresso' }));
+      expect(await screen.findByRole('status')).toHaveTextContent('Link copiado');
+      expect(screen.getByRole('status')).toHaveTextContent('não compartilhe');
+      expect(writeText).toHaveBeenCalledWith(window.location.href);
+    } finally {
+      if (originalClipboard) Object.defineProperty(navigator, 'clipboard', originalClipboard);
+      else Reflect.deleteProperty(navigator, 'clipboard');
+    }
   });
 
   it('não oferece impressão para ingresso cancelado', async () => {
