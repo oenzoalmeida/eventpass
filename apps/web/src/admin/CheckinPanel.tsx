@@ -19,7 +19,7 @@ export function CheckinPanel({ event, onCheckin }: { event: AdminEvent; onChecki
 
   const submit = useCallback(
     async (token: string) => {
-      if (!token.trim() || requestInFlight.current) return;
+      if (!token.trim() || requestInFlight.current) return false;
       // A ref blocks rapid double submissions before React can render busy=true.
       requestInFlight.current = true;
       setBusy(true);
@@ -31,9 +31,11 @@ export function CheckinPanel({ event, onCheckin }: { event: AdminEvent; onChecki
           onCheckin();
         }
         navigator.vibrate?.(result.alreadyCheckedIn ? [80, 60, 80] : 120);
+        return true;
       } catch (err) {
         setFeedback({ kind: 'error', message: err instanceof ApiRequestError ? err.message : 'Falha ao registrar presença.' });
         navigator.vibrate?.([200, 100, 200]);
+        return false;
       } finally {
         requestInFlight.current = false;
         setBusy(false);
@@ -45,8 +47,8 @@ export function CheckinPanel({ event, onCheckin }: { event: AdminEvent; onChecki
   function onManual(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const value = manualRef.current?.value ?? '';
-    void submit(value).then(() => {
-      if (manualRef.current) manualRef.current.value = '';
+    void submit(value).then((succeeded) => {
+      if (succeeded && manualRef.current) manualRef.current.value = '';
       manualRef.current?.focus();
     });
   }
