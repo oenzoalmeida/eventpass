@@ -37,7 +37,11 @@ export function QrScanner({ onScan, paused }: { onScan: (value: string) => void;
     (async () => {
       try {
         stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
-        if (stopped || !videoRef.current) return;
+        if (stopped || !videoRef.current) {
+          // getUserMedia may resolve after the user leaves or switches off the scanner.
+          stream.getTracks().forEach((track) => track.stop());
+          return;
+        }
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
         const tick = async () => {
@@ -46,6 +50,7 @@ export function QrScanner({ onScan, paused }: { onScan: (value: string) => void;
           if (video && video.readyState >= 2 && !pausedRef.current) {
             try {
               const [code] = await detector.detect(video);
+              if (stopped) return;
               const now = Date.now();
               // Evita reenviar o mesmo QR enquanto ele continua na frente da câmera.
               if (code?.rawValue && (code.rawValue !== last.value || now - last.at > 4000)) {
@@ -56,10 +61,11 @@ export function QrScanner({ onScan, paused }: { onScan: (value: string) => void;
               /* quadro ilegível: tenta no próximo */
             }
           }
-          timer = window.setTimeout(tick, 250);
+          if (!stopped) timer = window.setTimeout(tick, 250);
         };
         void tick();
       } catch (err) {
+        if (stopped) return;
         setError(
           err instanceof DOMException && err.name === 'NotAllowedError'
             ? 'Permita o acesso à câmera no navegador para ler os QR Codes.'
