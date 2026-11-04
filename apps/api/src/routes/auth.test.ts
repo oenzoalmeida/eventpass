@@ -73,5 +73,20 @@ describe('autenticação administrativa', () => {
     for (let i = 0; i < 10; i++) await login(TEST_ADMIN.email, 'errada-0000000');
     const res = await login(TEST_ADMIN.email, TEST_ADMIN.password);
     expect(res.statusCode).toBe(429);
+    // O corpo segue o contrato pt-BR: o frontend mostra `message` ao usuário.
+    expect(res.json()).toMatchObject({ error: 'rate_limited' });
+    expect(res.json().message).toContain('Muitas tentativas');
+  });
+
+  it('responde JSON malformado no contrato de erro pt-BR', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      headers: { 'content-type': 'application/json' },
+      payload: '{nao-e-json',
+    });
+    expect(res.statusCode).toBe(400);
+    expect(res.json()).toMatchObject({ error: 'invalid_request' });
+    expect(res.json().message).toContain('Requisição inválida');
   });
 });
