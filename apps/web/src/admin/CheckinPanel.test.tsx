@@ -38,4 +38,15 @@ describe('CheckinPanel concurrent submissions', () => {
     });
     await waitFor(() => expect(onCheckin).toHaveBeenCalledTimes(1));
   });
+  it('retains the manual token after an API failure so the operator can retry', async () => {
+    mocks.checkin.mockRejectedValueOnce(new Error('network unavailable'));
+    render(<CheckinPanel event={event} onCheckin={vi.fn()} />);
+    const input = screen.getByRole('textbox', { name: 'Código ou link do ingresso' });
+    fireEvent.change(input, { target: { value: 'qr-to-retry' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar' }));
+    await waitFor(() => expect(mocks.checkin).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(input).toHaveValue('qr-to-retry'));
+    expect(screen.getByText('Falha ao registrar presença.')).toBeInTheDocument();
+  });
+
 });
