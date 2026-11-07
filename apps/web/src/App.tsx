@@ -73,10 +73,10 @@ export function App() {
       >
         Pular para o conteúdo
       </a>
-      <header className="no-print border-b border-border bg-surface">
+      <header className="no-print border-b-2 border-fg/70 bg-bg">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
-          <Link href={admin && inAdmin ? '/admin' : '/'} className="text-lg font-bold tracking-tight">
-            Event<span className="text-primary">Pass</span>
+          <Link href={admin && inAdmin ? '/admin' : '/'} className="font-display text-2xl">
+            Event<span className="italic text-primary">Pass</span>
           </Link>
           <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
             {admin ? (
