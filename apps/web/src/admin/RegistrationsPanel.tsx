@@ -44,7 +44,7 @@ export function RegistrationsPanel({ event, onChange }: { event: AdminEvent; onC
         <a
           href={api.registrationsCsvUrl(event.id)}
           download
-          className="inline-flex h-10 items-center rounded-lg border border-border bg-surface px-4 text-sm font-medium hover:bg-surface-muted"
+          className="inline-flex h-11 items-center rounded-lg border border-border-strong bg-surface px-4 text-sm font-medium hover:bg-surface-muted"
         >
           Exportar CSV
         </a>
