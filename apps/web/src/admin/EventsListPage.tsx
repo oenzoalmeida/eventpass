@@ -2,7 +2,7 @@ import { api } from '../lib/api';
 import { useAsync } from '../lib/useAsync';
 import { formatDateTime } from '../lib/format';
 import { Link } from '../router/router';
-import { EmptyState, ErrorState, Loading } from '../components/ui';
+import { EmptyState, ErrorState, ListSkeleton } from '../components/ui';
 import { EventStatusBadge } from '../components/EventStatusBadge';
 import { PageHeader } from './AdminLayout';
 
@@ -19,7 +19,7 @@ export function EventsListPage() {
           </Link>
         }
       />
-      {status === 'loading' && <Loading />}
+      {status === 'loading' && <ListSkeleton rows={6} />}
       {status === 'error' && <ErrorState error={error} onRetry={reload} />}
       {status === 'success' &&
         (data.length === 0 ? (

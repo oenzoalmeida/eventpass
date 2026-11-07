@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { registrationInputSchema } from '@eventpass/shared';
-import { Alert, Button, Card, ErrorState, Input, Loading } from '../components/ui';
+import { Alert, Button, Card, ErrorState, Input, PageSkeleton } from '../components/ui';
 import { api, ApiRequestError } from '../lib/api';
 import { formatRange } from '../lib/format';
 import { useAsync } from '../lib/useAsync';
@@ -14,7 +14,7 @@ export function EventPage({ slug }: { slug: string }) {
   const [errors, setErrors] = useState<Errors>({});
   const [sending, setSending] = useState(false);
 
-  if (status === 'loading') return <Loading />;
+  if (status === 'loading') return <PageSkeleton />;
   if (status === 'error') {
     return error instanceof ApiRequestError && error.status === 404 ? (
       <div className="mx-auto max-w-lg py-12 text-center">

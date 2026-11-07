@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { AdminEvent } from '@eventpass/shared';
-import { Badge, Button, EmptyState, ErrorState, Input, Loading } from '../components/ui';
+import { Badge, Button, EmptyState, ErrorState, Input, TableSkeleton } from '../components/ui';
 import { api, ApiRequestError } from '../lib/api';
 import { formatDateTime } from '../lib/format';
 import { useAsync } from '../lib/useAsync';
@@ -29,7 +29,7 @@ export function RegistrationsPanel({ event, onChange }: { event: AdminEvent; onC
     }
   }
 
-  if (status === 'loading') return <Loading />;
+  if (status === 'loading') return <TableSkeleton />;
   if (status === 'error') return <ErrorState error={error} onRetry={reload} />;
   if (data.length === 0) {
     return <EmptyState title="Nenhuma inscrição ainda">Compartilhe a página pública do evento para receber inscrições.</EmptyState>;

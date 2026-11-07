@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, Button, Card, ErrorState, Loading } from '../components/ui';
+import { Alert, Button, Card, ErrorState, PageSkeleton } from '../components/ui';
 import { api, ApiRequestError } from '../lib/api';
 import { formatDateTime, formatRange } from '../lib/format';
 import { useAsync } from '../lib/useAsync';
@@ -18,7 +18,7 @@ export function TicketPage({ token }: { token: string }) {
     }
   }
 
-  if (status === 'loading') return <Loading label="Carregando ingresso…" />;
+  if (status === 'loading') return <PageSkeleton label="Carregando ingresso…" />;
   if (status === 'error') {
     return error instanceof ApiRequestError && error.status === 404 ? (
       <div className="mx-auto max-w-lg py-12 text-center">

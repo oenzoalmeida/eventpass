@@ -88,3 +88,10 @@
     }
   }
 }
+
+/* Telas esqueleto: pulso suave; desligado quando o usuário prefere movimento reduzido */
+@keyframes ep-skeleton-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+.ep-skeleton { animation: ep-skeleton-pulse 1.5s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .ep-skeleton { animation: none; }
+}

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { AdminEvent, EventStatus } from '@eventpass/shared';
-import { Alert, Button, ErrorState, Loading } from '../components/ui';
+import { Alert, Button, ErrorState, PageSkeleton } from '../components/ui';
 import { EventStatusBadge } from '../components/EventStatusBadge';
 import { Tabs } from '../components/Tabs';
 import { api, ApiRequestError } from '../lib/api';
@@ -20,7 +20,7 @@ export function EventDetailPage({ id }: { id: number }) {
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  if (status === 'loading') return <Loading />;
+  if (status === 'loading') return <PageSkeleton />;
   if (status === 'error') return <ErrorState error={error} onRetry={reload} />;
 
   const publicUrl = `${window.location.origin}/e/${event.slug}`;
