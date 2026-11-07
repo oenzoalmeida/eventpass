@@ -1,4 +1,4 @@
-import { Badge, Button, Loading, ThemeToggle } from './components/ui';
+import { Badge, Button, ThemeToggle, PageSkeleton } from './components/ui';
 import { useAuth } from './auth/useAuth';
 import { Link, matchPath, useRouter } from './router/router';
 import { AdminLayout } from './admin/AdminLayout';
@@ -27,7 +27,7 @@ function NotFound() {
 
 function AdminRoutes({ path }: { path: string }) {
   const { status, admin } = useAuth();
-  if (status === 'loading') return <Loading />;
+  if (status === 'loading') return <PageSkeleton />;
   if (status === 'anonymous') return <LoginPage />;
   if (admin?.mustChangePassword) return <ChangePasswordPage />;
 

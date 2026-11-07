@@ -1,4 +1,4 @@
-import { Card, EmptyState, ErrorState, Loading } from '../components/ui';
+import { Card, EmptyState, ErrorState, CardGridSkeleton, ListSkeleton } from '../components/ui';
 import { api } from '../lib/api';
 import { formatDateTime } from '../lib/format';
 import { useAsync } from '../lib/useAsync';
@@ -15,7 +15,7 @@ export function HomePage() {
           Próximos eventos
         </h1>
         <p className="mb-6 text-sm text-fg-muted">Inscreva-se, faça check-in no dia e acumule pontos.</p>
-        {events.status === 'loading' && <Loading />}
+        {events.status === 'loading' && <CardGridSkeleton />}
         {events.status === 'error' && <ErrorState error={events.error} onRetry={events.reload} />}
         {events.status === 'success' &&
           (events.data.length === 0 ? (
@@ -61,7 +61,7 @@ export function HomePage() {
             Ranking de participação
           </h2>
           <p className="mt-1 text-xs text-fg-muted">Pontos ganhos com presença confirmada.</p>
-          {board.status === 'loading' && <Loading />}
+          {board.status === 'loading' && <ListSkeleton rows={5} />}
           {board.status === 'error' && <p className="mt-3 text-sm text-fg-muted">Ranking indisponível.</p>}
           {board.status === 'success' &&
             (board.data.length === 0 ? (

@@ -1,12 +1,12 @@
 import type { AdminEvent } from '@eventpass/shared';
-import { ErrorState, Loading, Stat } from '../components/ui';
+import { ErrorState, Stat, StatsSkeleton } from '../components/ui';
 import { api } from '../lib/api';
 import { formatNumber, formatPercent, formatTime } from '../lib/format';
 import { useAsync } from '../lib/useAsync';
 
 export function ReportPanel({ event }: { event: AdminEvent }) {
   const { status, data, error, reload } = useAsync(() => api.report(event.id), [event.id, event.checkins, event.registrations]);
-  if (status === 'loading') return <Loading />;
+  if (status === 'loading') return <StatsSkeleton count={3} />;
   if (status === 'error') return <ErrorState error={error} onRetry={reload} />;
 
   const max = Math.max(1, ...data.checkinsByHour.map((h) => h.count));

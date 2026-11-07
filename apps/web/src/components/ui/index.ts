@@ -6,4 +6,5 @@ export { Badge } from './Badge';
 export { Alert } from './Alert';
 export { Stat } from './Stat';
 export { Loading, ErrorState, EmptyState } from './States';
+export { Skeleton, PageSkeleton, CardGridSkeleton, ListSkeleton, StatsSkeleton, TableSkeleton } from './Skeleton';
 export { ThemeToggle } from './ThemeToggle';

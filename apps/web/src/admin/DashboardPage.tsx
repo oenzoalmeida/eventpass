@@ -2,7 +2,7 @@ import { api } from '../lib/api';
 import { useAsync } from '../lib/useAsync';
 import { formatDateTime, formatNumber } from '../lib/format';
 import { Link } from '../router/router';
-import { Card, EmptyState, ErrorState, Loading, Stat } from '../components/ui';
+import { Card, EmptyState, ErrorState, Stat, StatsSkeleton, TableSkeleton } from '../components/ui';
 import { EventStatusBadge } from '../components/EventStatusBadge';
 import { PageHeader } from './AdminLayout';
 
@@ -20,7 +20,7 @@ export function DashboardPage() {
           </Link>
         }
       />
-      {status === 'loading' && <Loading />}
+      {status === 'loading' && (<><StatsSkeleton /><div className="mt-8"><TableSkeleton rows={4} /></div></>)}
       {status === 'error' && <ErrorState error={error} onRetry={reload} />}
       {status === 'success' && (
         <div className="space-y-8">
