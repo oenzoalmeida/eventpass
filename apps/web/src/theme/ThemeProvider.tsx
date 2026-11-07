@@ -14,9 +14,10 @@ export const ThemeContext = createContext<ThemeContextValue | null>(null);
 function readStored(): ThemePreference {
   try {
     const v = localStorage.getItem(STORAGE_KEY);
-    return v === 'light' || v === 'dark' ? v : 'system';
+    // PROPOSTA A: escuro é o padrão; o usuário ainda pode escolher Claro/Sistema.
+    return v === 'light' || v === 'dark' ? v : 'dark';
   } catch {
-    return 'system';
+    return 'dark';
   }
 }
 

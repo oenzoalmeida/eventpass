@@ -73,10 +73,10 @@ export function App() {
       >
         Pular para o conteúdo
       </a>
-      <header className="no-print border-b border-border bg-surface">
+      <header className="no-print sticky top-0 z-20 border-b border-border bg-bg/85 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
           <Link href={admin && inAdmin ? '/admin' : '/'} className="text-lg font-bold tracking-tight">
-            Event<span className="text-primary">Pass</span>
+            Event<span className="bg-gradient-to-r from-primary to-success bg-clip-text text-transparent">Pass</span>
           </Link>
           <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
             {admin ? (
