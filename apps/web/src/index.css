@@ -11,6 +11,8 @@
   --ep-fg: oklch(0.22 0.02 265);
   --ep-fg-muted: oklch(0.48 0.02 265);
   --ep-border: oklch(0.9 0.008 260);
+  /* Borda de controles interativos (campos, botoes secundarios): contraste >= 3:1 */
+  --ep-border-strong: #7a8494;
   --ep-primary: oklch(0.52 0.2 275);
   --ep-primary-hover: oklch(0.46 0.2 275);
   --ep-primary-fg: oklch(0.99 0 0);
@@ -29,6 +31,7 @@
   --ep-fg: oklch(0.95 0.005 260);
   --ep-fg-muted: oklch(0.72 0.015 260);
   --ep-border: oklch(0.32 0.02 265);
+  --ep-border-strong: #66788a;
   --ep-primary: oklch(0.7 0.16 275);
   --ep-primary-hover: oklch(0.76 0.14 275);
   --ep-primary-fg: oklch(0.17 0.02 265);
@@ -48,6 +51,7 @@
   --color-fg: var(--ep-fg);
   --color-fg-muted: var(--ep-fg-muted);
   --color-border: var(--ep-border);
+  --color-border-strong: var(--ep-border-strong);
   --color-primary: var(--ep-primary);
   --color-primary-hover: var(--ep-primary-hover);
   --color-primary-fg: var(--ep-primary-fg);

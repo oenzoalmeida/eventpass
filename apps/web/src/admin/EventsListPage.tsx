@@ -14,7 +14,7 @@ export function EventsListPage() {
       <PageHeader
         title="Eventos"
         actions={
-          <Link href="/admin/eventos/novo" className="inline-flex h-10 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-fg hover:bg-primary-hover">
+          <Link href="/admin/eventos/novo" className="inline-flex h-11 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-fg hover:bg-primary-hover">
             Novo evento
           </Link>
         }

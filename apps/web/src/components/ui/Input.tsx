@@ -33,8 +33,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         aria-invalid={error ? true : undefined}
         aria-describedby={[hintId, errorId].filter(Boolean).join(' ') || undefined}
         className={cn(
-          'h-10 rounded-lg border bg-surface px-3 text-sm text-fg placeholder:text-fg-muted',
-          error ? 'border-danger' : 'border-border',
+          'h-11 rounded-lg border bg-surface px-3 text-sm text-fg placeholder:text-fg-muted',
+          error ? 'border-danger' : 'border-border-strong',
           className,
         )}
         {...props}

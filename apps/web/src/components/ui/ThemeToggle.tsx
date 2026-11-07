@@ -12,7 +12,7 @@ const options: Array<{ value: ThemePreference; label: string }> = [
 export function ThemeToggle() {
   const { preference, setPreference } = useTheme();
   return (
-    <div role="group" aria-label="Tema" className="inline-flex rounded-lg border border-border bg-surface p-0.5">
+    <div role="group" aria-label="Tema" className="inline-flex rounded-lg border border-border-strong bg-surface p-0.5">
       {options.map((o) => (
         <button
           key={o.value}
@@ -20,7 +20,7 @@ export function ThemeToggle() {
           aria-pressed={preference === o.value}
           onClick={() => setPreference(o.value)}
           className={cn(
-            'rounded-md px-3 py-1 text-xs font-medium transition-colors',
+            'inline-flex items-center rounded-md min-h-11 px-3 text-xs font-medium transition-colors active:scale-[0.97] motion-reduce:transform-none',
             preference === o.value ? 'bg-primary text-primary-fg' : 'text-fg-muted hover:text-fg',
           )}
         >
