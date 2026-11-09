@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { loginRequestSchema } from '@eventpass/shared';
-import { Button, Card, CardDescription, Input } from '../components/ui';
+import { Button, Card, CardDescription, Input, PasswordInput } from '../components/ui';
 import { useAuth } from '../auth/useAuth';
 import { ApiRequestError } from '../lib/api';
 
@@ -34,8 +34,9 @@ export function LoginPage() {
   }
 
   return (
-    <div className="mx-auto flex max-w-sm flex-col pt-12">
-      <Card>
+    <div className="login-scene mx-auto flex max-w-sm flex-col pt-12">
+      <div className="login-scene-bg" aria-hidden="true" />
+      <Card className="login-glass">
         <h1 className="text-xl font-semibold text-fg">Entrar no painel</h1>
         <CardDescription>Acesso restrito a organizadores.</CardDescription>
         <form className="mt-5 space-y-4" onSubmit={onSubmit} noValidate>
@@ -52,9 +53,8 @@ export function LoginPage() {
             required
             error={errors.email}
           />
-          <Input
+          <PasswordInput
             name="password"
-            type="password"
             label="Senha"
             autoComplete="current-password"
             required

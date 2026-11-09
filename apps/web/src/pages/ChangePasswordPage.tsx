@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { changePasswordRequestSchema } from '@eventpass/shared';
-import { Button, Card, CardDescription, Input } from '../components/ui';
+import { Button, Card, CardDescription, PasswordInput } from '../components/ui';
 import { useAuth } from '../auth/useAuth';
 import { ApiRequestError } from '../lib/api';
 
@@ -55,25 +55,22 @@ export function ChangePasswordPage() {
               {formError}
             </p>
           )}
-          <Input
+          <PasswordInput
             name="currentPassword"
-            type="password"
             label="Senha temporária"
             autoComplete="current-password"
             required
             error={errors.currentPassword}
           />
-          <Input
+          <PasswordInput
             name="newPassword"
-            type="password"
             label="Nova senha (mín. 12 caracteres)"
             autoComplete="new-password"
             required
             error={errors.newPassword}
           />
-          <Input
+          <PasswordInput
             name="confirmPassword"
-            type="password"
             label="Repita a nova senha"
             autoComplete="new-password"
             required
