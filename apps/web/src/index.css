@@ -155,3 +155,41 @@
 /* Correção mobile: nada pode empurrar a página além da viewport. */
 html, body { overflow-x: clip; }
 .ep-marquee { max-width: 100%; min-width: 0; }
+
+/* ==========================================================================
+   TELA DE LOGIN (nov/2026) - noite de festival
+   Cena escura de show atrás do cartão: holofotes em cunha, bokeh colorido
+   (violeta, lima, ciano) e cartão de vidro. Os tokens semânticos são
+   redefinidos só dentro de .login-scene, então o cartão, os campos e o
+   botão se adaptam sem tocar no resto do app. Só apresentação.
+   ========================================================================== */
+.login-scene {
+  --ep-surface: oklch(0.27 0.05 286 / 0.62);
+  --ep-surface-muted: oklch(0.34 0.06 286 / 0.7);
+  --ep-fg: oklch(0.96 0.012 285);
+  --ep-fg-muted: oklch(0.78 0.035 285);
+  --ep-border: oklch(1 0 0 / 0.16);
+  --ep-border-strong: oklch(1 0 0 / 0.32);
+  --ep-primary: oklch(0.7 0.24 293);
+  --ep-primary-hover: oklch(0.76 0.22 293);
+  --ep-primary-fg: oklch(0.16 0.03 286);
+}
+.login-scene-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    conic-gradient(from 180deg at 18% -8%, transparent 42%, oklch(0.66 0.235 293 / 0.16) 50%, transparent 58%),
+    conic-gradient(from 180deg at 82% -8%, transparent 42%, oklch(0.87 0.225 123 / 0.1) 50%, transparent 58%),
+    radial-gradient(240px 240px at 12% 30%, oklch(0.66 0.235 293 / 0.35), transparent 70%),
+    radial-gradient(200px 200px at 85% 22%, oklch(0.87 0.225 123 / 0.22), transparent 70%),
+    radial-gradient(280px 280px at 78% 78%, oklch(0.7 0.15 220 / 0.28), transparent 70%),
+    radial-gradient(180px 180px at 25% 85%, oklch(0.65 0.19 330 / 0.25), transparent 70%),
+    linear-gradient(165deg, oklch(0.17 0.04 286), oklch(0.23 0.07 293) 55%, oklch(0.19 0.05 300));
+}
+.login-glass {
+  backdrop-filter: blur(18px) saturate(1.25);
+  -webkit-backdrop-filter: blur(18px) saturate(1.25);
+  box-shadow: 0 24px 70px oklch(0.1 0.03 286 / 0.55);
+}
