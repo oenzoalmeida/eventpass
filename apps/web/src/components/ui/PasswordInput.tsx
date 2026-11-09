@@ -42,7 +42,6 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
           />
           <button
             type="button"
-            tabIndex={-1}
             aria-label={show ? 'Ocultar senha' : 'Mostrar senha'}
             aria-pressed={show}
             onClick={() => setShow((v) => !v)}
