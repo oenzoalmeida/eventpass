@@ -151,3 +151,7 @@
 @media (prefers-reduced-motion: reduce) {
   .ep-aurora, .ep-marquee-track, .ep-card-live::before { animation: none; }
 }
+
+/* Correção mobile: nada pode empurrar a página além da viewport. */
+html, body { overflow-x: clip; }
+.ep-marquee { max-width: 100%; min-width: 0; }
