@@ -18,7 +18,7 @@ export function HomePage() {
 
   return (
     <div className="grid gap-10 lg:grid-cols-[1fr_320px]">
-      <section aria-labelledby="eventos" className="relative">
+      <section aria-labelledby="eventos" className="relative min-w-0">
         <div
           aria-hidden
           className="pointer-events-none absolute -top-10 left-0 h-56 w-full rounded-full bg-[radial-gradient(closest-side,var(--ep-primary),transparent)] opacity-25 blur-3xl"
