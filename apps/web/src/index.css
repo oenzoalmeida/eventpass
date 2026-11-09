@@ -94,3 +94,60 @@
 @media (prefers-reduced-motion: reduce) {
   .ep-skeleton { animation: none; }
 }
+
+/* ==========================================================================
+   PASSADA VISIVEL 2 (nov/2026) - toques estilo 21st.dev:
+   aurora animada, marquee de beneficios e borda viva nos cartoes.
+   Apenas apresentacao; nenhuma logica ou texto funcional alterado.
+   ========================================================================== */
+@keyframes ep-drift {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  33% { transform: translate3d(6%, -8%, 0) scale(1.15); }
+  66% { transform: translate3d(-5%, 6%, 0) scale(0.95); }
+}
+@keyframes ep-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@property --ep-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes ep-border-spin {
+  to { --ep-angle: 360deg; }
+}
+.ep-aurora {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(72px);
+  opacity: 0.35;
+  pointer-events: none;
+  animation: ep-drift 14s ease-in-out infinite;
+}
+.ep-marquee { overflow: hidden; white-space: nowrap; }
+.ep-marquee-track {
+  display: inline-flex;
+  gap: 2.5rem;
+  padding-right: 2.5rem;
+  animation: ep-marquee 22s linear infinite;
+}
+.ep-card-live { position: relative; }
+.ep-card-live::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(from var(--ep-angle), var(--ep-primary), var(--ep-success), var(--ep-primary));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  animation: ep-border-spin 6s linear infinite;
+  opacity: 0.8;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ep-aurora, .ep-marquee-track, .ep-card-live::before { animation: none; }
+}

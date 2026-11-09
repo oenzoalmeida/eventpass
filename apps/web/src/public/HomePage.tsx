@@ -23,15 +23,28 @@ export function HomePage() {
           aria-hidden
           className="pointer-events-none absolute -top-10 left-0 h-56 w-full rounded-full bg-[radial-gradient(closest-side,var(--ep-primary),transparent)] opacity-25 blur-3xl"
         />
-        <p className="relative mb-2 text-xs font-semibold uppercase tracking-[0.3em] text-success">
+        <div aria-hidden className="ep-aurora -top-24 -left-24 h-72 w-72 bg-[var(--ep-primary)]" />
+        <div aria-hidden className="ep-aurora top-40 -right-16 h-80 w-80 bg-[var(--ep-success)]" style={{ animationDelay: '-7s' }} />
+        <p className="relative mb-3 inline-flex items-center gap-2 rounded-full border border-success/40 bg-success/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-success">
+          <span aria-hidden className="size-1.5 animate-pulse rounded-full bg-success" />
           Agenda aberta
         </p>
         <h1 id="eventos" className="relative mb-2 text-4xl font-bold tracking-tight sm:text-5xl">
           Próximos <span className="text-primary">eventos</span>
         </h1>
-        <p className="relative mb-8 max-w-lg text-base text-fg-muted">
+        <p className="relative mb-6 max-w-lg text-base text-fg-muted">
           Inscreva-se, faça check-in no dia e acumule pontos.
         </p>
+        <div
+          aria-hidden
+          className="ep-marquee relative mb-8 max-w-lg rounded-full border border-border bg-surface/60 py-2 text-[0.7rem] font-semibold uppercase tracking-[0.25em] text-fg-muted"
+        >
+          <div className="ep-marquee-track">
+            {['Check-in no dia', 'Pontos por presença', 'Ranking ao vivo', 'Ingresso com QR', 'Modo Festival', 'Check-in no dia', 'Pontos por presença', 'Ranking ao vivo', 'Ingresso com QR', 'Modo Festival'].map((t, i) => (
+              <span key={i}>{t} ✦</span>
+            ))}
+          </div>
+        </div>
         {events.status === 'loading' && <CardGridSkeleton />}
         {events.status === 'error' && <ErrorState error={events.error} onRetry={events.reload} />}
         {events.status === 'success' &&
@@ -52,7 +65,7 @@ export function HomePage() {
                 const { day, month } = dayMonth(e.startsAt);
                 return (
                   <li key={e.slug}>
-                    <Card className="relative flex h-full gap-4 rounded-2xl border-primary/30 bg-surface/70 shadow-[0_0_45px_-18px_var(--ep-primary)] backdrop-blur-sm transition-transform hover:-translate-y-0.5">
+                    <Card className="ep-card-live relative flex h-full gap-4 rounded-2xl border-primary/30 bg-surface/70 shadow-[0_0_45px_-18px_var(--ep-primary)] backdrop-blur-sm transition-transform hover:-translate-y-0.5">
                       <div className="flex w-16 shrink-0 flex-col items-center justify-center self-start rounded-xl bg-primary/15 px-2 py-3 text-primary">
                         <span className="text-2xl font-bold leading-none tabular-nums">{day}</span>
                         <span className="mt-1 text-[0.65rem] font-semibold tracking-[0.2em]">{month}</span>
