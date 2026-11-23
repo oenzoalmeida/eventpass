@@ -20,6 +20,7 @@ describe('CLI homologation package', () => {
       expect(readFileSync(worker, 'utf8')).toContain("'../src/scripts/email-worker.js'");
       expect(readFileSync(worker, 'utf8')).toContain("schedule: '*/5 * * * *'");
       expect(existsSync(work + '/.deploy-netlify/functions/api.ts')).toBe(true);
+      expect(readFileSync(work + '/.deploy-netlify/functions/email-maintenance.ts','utf8')).toContain("schedule: '17 3 * * *'");
     } finally { rmSync(work, { recursive: true, force: true }); }
   });
 });
