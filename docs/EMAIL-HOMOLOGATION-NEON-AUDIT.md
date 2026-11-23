@@ -1,3 +1,5 @@
+> Auditoria histórica anterior, não runbook atual. O manifesto atual inclui005_email_operations. Para instruções vigentes use EMAIL-ROLLOUT.md e EMAIL-RECOVERY-RUNBOOK.md; evidências atuais em EMAIL-OPERATIONS-REVIEW-2026-11-23.md.
+
 # EventPass: Neon homologation preflight
 
 **Read-only audit on 2026-11-23. No production changes.**

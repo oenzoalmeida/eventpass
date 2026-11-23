@@ -14,7 +14,7 @@ Remoto
 Regra versionada Vercel por branch exatafalse, schema oficial validado, sem alteração de configuração sensível. CInessa branch preparado. Push dry-run não escreveu e falhou por ausência deautenticação. gh nãoautenticado,semhelper/SSH/envtoken. IntegraçãoGitHub atual não oferece push decommits. Não reutilizar PAT deoutroescopo; essa lacuna éseparada do riscoVercel.
 Neon: acessoAPIcontrole autenticado já validado200, segredo retido só na página. Transporte suportadoseguro atéexecução continuaausente; não replicar requisição para obtercookie/token,não usarserviço terceiro ou versãooriginal. Coletavault prévia fica pendente semnovaping.
 
-O relatório v3 continua histórico da rodada anterior. Esta revisão acrescenta migration005, portanto evidência DDLNeon anterior não cobre005. Não aplicar ao bancoativo. Antes de API na cópia, migration005 terá de ser ensaiada exclusivamente nela e manifesto conferido, sem apagar histórico. Cópia temporária expira24nov08:12.
+O relatório v3 continua histórico da rodada anterior. Esta revisão acrescenta migration005, ensaiada às10:39 exclusivamente na cópia indicada, com sete nomes de histórico e tabela de orçamento vazia. Não aplicar ao banco ativo. A evidência DDL v3 isoladamente não cobria005; a evidência atual cobre. Antes da API na cópia, conferir novamente o manifesto sem apagar histórico. Cópia temporária expira24nov08:12.
 
 Validação desta continuação
 Node22: npmci,typecheck,lint,build aprovados. API108/web22/PG12 aprovados.
@@ -27,3 +27,5 @@ Backups epatches permanecemprivados; main/Neonativo/AWS/enviosreais/produçãoin
 Cota oficial adicional: https://resend.com/docs/api-reference/rate-limit e https://resend.com/docs/knowledge-base/account-quotas-and-limits confirmam reset diárioUTC e que recebidos também consomem cota. Orçamento EventPass não deve ocupar a margem usada por inbound/outros consumidores. Sem prova da conta, EMAIL_BUDGET_CONFIRMED permanecefalse.
 
 Atualização10:39Neon: migration005 aplicada somente à cópia br-floral-union-b86d5tmd, comBEGIN/COMMITeguarda0admins/participantes/inscrições. Confirmados7nomesdemigraçãoe0linhasdeorçamento. SchemaNeon17atualizado,nãoháAPIEventPasscontraNeon. Fonte https://console.neon.tech/app/projects/little-voice-72531404/branches/br-floral-union-b86d5tmd/sql-editor?database=eventpass .
+
+Restauração atual10:42: dumpPGlocal já commanifesto005 e tabelaemail_send_budget, restaurado emdestinodescartávelnovo com1admin,5eventos,15inscrições,5migraçõese0reservas. HTTPempacotado30/30nodestinorestaurado. Somente fixtures. Este ensaio atual substitui o dump v3 de4migrações como evidência de compatibilidade do estado atual.

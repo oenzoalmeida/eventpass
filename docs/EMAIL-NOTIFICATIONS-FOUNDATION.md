@@ -1,3 +1,5 @@
+> Descrição de código, não autorização de ativação. Configuração operacional atual e flags estão em EMAIL-ROLLOUT.md; evidências atuais em EMAIL-OPERATIONS-REVIEW-2026-11-23.md.
+
 # EventPass: comunicação transacional e recuperação de ingressos
 
 ## Estado da implementação
@@ -11,7 +13,7 @@ A integração está desenvolvida na branch `feat/email-notification-foundation`
 - `apps/api/src/scripts/process-email.ts`: processador de lote manual (até 20 mensagens), validando elegibilidade do ingresso e do pedido de recuperação antes de enviar.
 - `apps/api/src/routes/ticket-recovery.ts`: solicitação com resposta genérica e link de uso único; confirmação cria novo token e invalida o anterior.
 - `apps/web/src/public/TicketRecoveryPage.tsx`: página utilizando componentes já existentes.
-- `apps/api/migrations/003_email_outbox.sql` e `004_ticket_recovery.sql`: versões SQLite e PostgreSQL.
+- `apps/api/migrations/003_email_outbox.sql` , `004_ticket_recovery.sql` e `005_email_operations.sql`: versões SQLite e PostgreSQL.
 
 ## Comportamento
 A inscrição mantém o contrato atual e devolve o ingresso imediatamente. Quando `EMAIL_ENABLED=true`, registra tarefa da outbox **na mesma transação da inscrição**. Nenhuma requisição HTTP ao Resend ocorre dentro dessa transação.
