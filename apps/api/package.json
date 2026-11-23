@@ -14,6 +14,7 @@
     "db:seed": "tsx --env-file-if-exists=../../.env src/scripts/seed.ts",
     "db:backup": "tsx --env-file-if-exists=../../.env src/scripts/backup.ts",
     "email:process": "tsx --env-file-if-exists=../../.env src/scripts/process-email.ts",
+    "email:preflight": "tsx --env-file-if-exists=../../.env src/scripts/email-preflight.ts",
     "test:pg": "vitest run pg.test.ts"
   },
   "dependencies": {
