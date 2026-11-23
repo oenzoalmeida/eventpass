@@ -312,10 +312,11 @@ describePg('PostgreSQL (dialect do Neon)', () => {
       expect(job).not.toBeNull();
       const decrypted = decryptEmailPayload(job!.payload_ciphertext, decodeEmailKey(key), job!.idempotency_key);
       const token = new URL(JSON.parse(decrypted).link).pathname.split('/').pop();
-      const used = await enabledApp.inject({
+      const redemptions = await Promise.all(Array.from({ length: 2 }, () => enabledApp.inject({
         method: 'POST', url: '/api/public/tickets/recovery/confirm', payload: { token },
-      });
-      expect(used.statusCode).toBe(200);
+      })));
+      expect(redemptions.map((r) => r.statusCode).sort()).toEqual([200, 400]);
+      const used = redemptions.find((r) => r.statusCode === 200)!;
       expect(used.json().ticketToken).not.toBe(before);
       const { hashTicketToken } = await import('./lib/tickets.js');
       const stored = await db.get<{ qr_token_hash: string }>(
@@ -364,6 +365,17 @@ describePg('PostgreSQL (dialect do Neon)', () => {
     const bounded = new PgClient(url!, { ssl: false, prepare: false, statementTimeoutMs: 30, lockTimeoutMs: 30, maxConnections: 1 });
     try { await expect(bounded.get('SELECT pg_sleep(0.2)')).rejects.toMatchObject({ code: '57014' }); }
     finally { await bounded.close(); }
+  });
+
+  it('claims an outbox job once across concurrent PostgreSQL workers', async () => {
+    const { randomBytes } = await import('node:crypto');
+    const { enqueueEmail, claimEmail, markEmailSent } = await import('./lib/email/outbox.js');
+    const { encryptEmailPayload } = await import('./lib/email/crypto.js');
+    await enqueueEmail(db, { idempotencyKey:'pg-concurrent',kind:'registration_confirmation',recipientEmail:'fixture@example.test',payloadCiphertext:encryptEmailPayload('fixture',randomBytes(32),'pg-concurrent') });
+    const jobs = await Promise.all([claimEmail(db),claimEmail(db)]);
+    expect(jobs.filter(Boolean)).toHaveLength(1);
+    const job=jobs.find(Boolean)!; expect(await markEmailSent(db,job)).toBe(true);
+    expect((await db.get<{attempts:number}>('SELECT attempts FROM email_outbox'))?.attempts).toBe(1);
   });
 
 });

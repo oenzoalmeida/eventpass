@@ -35,11 +35,11 @@ Sem sessão ou credencial específica disponível. Login GitHub pede novo OAuth 
 
 ## Testes locais finais e correções adicionais
 
-- Node22.23.5. PostgreSQL14.24 descartável. Não confundir com PostgreSQL17 do Neon.
+- Node22.23.5 e rodada adicional isolada Node24.22.3 (typecheck,lint,build,API,web,PG aprovados). Isso não é validação de deploy Vercel24.x. PostgreSQL14.24 descartável. Não confundir com PostgreSQL17 do Neon.
 - npm ci realizado; typecheck, lint, build e diff --check aprovados.
-- API101 testes aprovados; web22 aprovados. Os10 testes PostgreSQL não são executados por npm test sem ambiente dedicado; foram executados separadamente e os10 passaram.
+- API101 testes aprovados; web22 aprovados. Os11 testes PostgreSQL não são executados por npm test sem ambiente dedicado; foram executados separadamente e os11 passaram.
 - API HTTP empacotada com PostgreSQL:30/30. Dump/restore da fixture com1admin,1evento,3inscrições e4migrações, seguido de30/30 HTTP no destino restaurado. Sem backup/restauração de dados reais.
-- Worker real com HTTP simulado: renderiza, entrega uma vez, limpa ciphertext, retry de503 e bloqueio de inscrição cancelada. PostgreSQL inclui caminho agendado, bigint, rotação e check-in idempotente.
+- Worker real com HTTP simulado: renderiza, entrega uma vez, limpa ciphertext, retry de503 e bloqueio de inscrição cancelada. PostgreSQL inclui caminho agendado, bigint, rotação e check-in idempotente, claim concorrente por dois workers e resgate concorrente de uso único.
 - Concorrência SQLite reproduziu BEGIN aninhado ao executar duas claims na mesma conexão. Regressão falhou antes e passou com fila de transações; liberação da fila após rollback também verificada. Um segundo ensaio reproduziu enqueue externo revertido junto com transação alheia; operações externas agora aguardam a fila e o callback usa client transacional dedicado, com regressão antes/depois.
 - Logger de erro inesperado e limpeza de sessão não emite mais exceção bruta; regressão verifica ausência do conteúdo privado da exceção.
 - Inspeção de pixels: home/login desktop, recuperação mobile390px, confirmação React Email desktop e recuperação React Email mobile. Sem alteração de estilos globais, identidade visual ou componentes existentes.
