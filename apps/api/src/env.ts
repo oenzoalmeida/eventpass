@@ -1,4 +1,5 @@
 import { z } from '@eventpass/shared';
+import { decodeEmailKey } from './lib/email/crypto.js';
 
 const bool = z
   .enum(['true', 'false'])
@@ -46,8 +47,17 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
   const env = parsed.data;
   if (env.EMAIL_ENABLED) {
     if (!env.EMAIL_ENCRYPTION_KEY || !env.EMAIL_PUBLIC_BASE_URL) throw new Error('Missing email configuration');
-    if (Buffer.from(env.EMAIL_ENCRYPTION_KEY, 'base64').length !== 32) throw new Error('Invalid email encryption key');
-    if (env.NODE_ENV === 'production' && !env.EMAIL_PUBLIC_BASE_URL.startsWith('https://')) throw new Error('Email public base URL must use HTTPS');
+    decodeEmailKey(env.EMAIL_ENCRYPTION_KEY);
+    if (env.NODE_ENV === 'production') {
+      const siteUrl = new URL(env.EMAIL_PUBLIC_BASE_URL);
+      if (siteUrl.protocol !== 'https:') throw new Error('Email public base URL must use HTTPS');
+      if (siteUrl.origin !== new URL(env.WEB_ORIGIN).origin) {
+        throw new Error('Email public base URL must match the configured frontend origin');
+      }
+      if (!env.RESEND_API_KEY || !env.EMAIL_FROM) {
+        throw new Error('Real email delivery requires Resend credentials and a verified sender');
+      }
+    }
   }
   return {
     ...env,
