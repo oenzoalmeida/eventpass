@@ -19,7 +19,7 @@ Projeto little-voice-72531404, banco eventpass, branch ativa homolog br-patient-
 
 Criada cópia temporária schema-only tmp-email-schema-20261123, br-floral-union-b86d5tmd, sem copiar registros pessoais. Conferidos zero admins, participantes, inscrições e registros de migração. O histórico não acompanha a cópia schema-only: manifesto histórico foi reconstruído explicitamente para o ensaio, sem alegar preservação de linhas copiadas. Aplicados os SQL exatos 002_password_change, 003_email_outbox, 004_ticket_recovery em transação, seguidos dos seis nomes do manifesto. COMMIT, coluna e tabelas verificados. Branch ativa intacta.
 
-Expiração automática: 24/nov/2026 08:12 America/Sao_Paulo. Plano Free, PostgreSQL 17, retenção observada 6 horas, não os 7 dias citados no documento antigo. Não foi executada API contra Neon nesta etapa: conexão do console está mascarada e não foi extraída/exposta como texto. Testes API PostgreSQL locais são separados desta evidência DDL real.
+Expiração automática: 24/nov/2026 08:12 America/Sao_Paulo. Plano Free, PostgreSQL 17, retenção observada 6 horas, não os 7 dias citados no documento antigo. Não foi executada a aplicação EventPass contra Neon nesta etapa. Em investigação adicional às09:09, o endpoint oficial GET connection_uri foi acessado pela sessão autenticada do console, com branch_id temporária explícita; retornou200 e a URI foi validada em memória da página (host/banco corretos e senha presente). Somente status/booleanos saíram desse contexto, sem URI/senha em logs. Não há transporte suportado dessa resposta até o processo local sem tornar o segredo saída de navegação. Logo, acesso à API de controle Neon existe; execução da API EventPass continua pendente de transporte seguro da conexão. São evidências diferentes dos testes locais e do DDL real.
 
 ## Netlify
 
@@ -59,7 +59,7 @@ Workflow Netlify no repositório só dispara push na feat/netlify-neon-homolog o
 
 ## Dependências que permanecem
 
-1. API contra a cópia Neon requer conexão pelo canal seguro, vinculada exclusivamente a br-floral-union-b86d5tmd antes da expiração. DDL real passou, mas API Neon não foi executada. Não executar suíte destrutiva PG_TEST na cópia compartilhada.
+1. API EventPass contra a cópia Neon requer transporte seguro da conexão, vinculada exclusivamente a br-floral-union-b86d5tmd antes da expiração. O GET autenticado da API de controle Neon foi validado sem expor segredo; não existe conector Neon nativo nem download seguro dessa resposta no acesso disponível. Cofre sem item EventPass/API Neon,1Password não conectado e nenhuma configuração CLI Neon autorizada encontrada. Integrações GitHub/Vercel aparecem como Add, Netlify como documentação Read. Não foram criadas integrações nem copiadas credenciais de outros projetos. A coleta segura já aberta permanece pendente, sem novo pedido de participação. DDL real passou, mas API Neon não foi executada. Não executar suíte destrutiva PG_TEST na cópia compartilhada.
 2. Resend requer acesso/novo OAuth aprovado ou credencial específica, domínio/DNS verificados ou alternativa restrita de teste, destinatário controlado e autorização de envio. Nenhum aceite HTTP ou entrega real foi produzido.
 3. Deploy Netlify depende de capacidade disponível e aprovação específica. Tempo de execução, logs de retenção, proteção dos previews e conexão pooler precisam ser revalidados no ambiente de destino antes da ativação.
 4. PR está preparado em arquivo para revisão, não publicado. Push aguarda caminho seguro que não cause deploy indevido; autenticação não elimina esse risco.
