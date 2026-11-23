@@ -20,7 +20,7 @@ Deixar EMAIL_ENABLED=false e TICKET_RECOVERY_ENABLED=false em produção até a 
 O arquivo deploy/oracle/eventpass-email.service executa uma leva finita com o mesmo usuário e banco da API. O timer correspondente executa a cada minuto. Eles são exemplos de systemd e **não são habilitados automaticamente**. Secrets em /etc/eventpass/email.env com permissão restrita ao administrador do sistema (e disponível ao serviço somente por EnvironmentFile). Revisar diretórios e executável npm antes de instalar.
 
 ## Netlify/Neon
-Não usar timers systemd nem processos persistentes em Netlify Functions. Um worker agendado separado é necessário para o processamento, com limite de tempo e conexão pooler; não foi criado nesta branch.
+Não usar timers systemd nem processos persistentes em Netlify Functions. O worker agendado separado está implementado nesta branch, mas não foi publicado nem habilitado. Exige limite de tempo e conexão pooler.
 
 ## Testes obrigatórios antes do rollout
 - npm ci; npm run typecheck; npm run lint; npm test; npm run build.

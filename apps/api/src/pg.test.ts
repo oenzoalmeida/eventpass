@@ -40,8 +40,24 @@ describePg('PostgreSQL (dialect do Neon)', () => {
   });
 
   afterEach(async () => {
-    await app.close();
-    await db.close();
+    await app?.close();
+    await db?.close();
+  });
+
+  it('serializes numeric and bigint-string registration locks identically', async () => {
+    let release!: () => void;
+    let acquired!: () => void;
+    const gate = new Promise<void>((resolve) => { release = resolve; });
+    const locked = new Promise<void>((resolve) => { acquired = resolve; });
+    const first = db.transaction(async (tx) => { await tx.lock('42'); acquired(); await gate; });
+    await locked;
+    let secondAcquired = false;
+    const second = db.transaction(async (tx) => { await tx.lock(42); secondAcquired = true; });
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      expect(secondAcquired).toBe(false);
+    } finally { release(); await Promise.all([first, second]); }
+    expect(secondAcquired).toBe(true);
   });
 
   it('login cria sessão persistente entre instâncias do app', async () => {

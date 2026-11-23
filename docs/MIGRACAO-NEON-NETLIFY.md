@@ -60,8 +60,8 @@ Para copiar dados de um banco SQLite existente:
 
 ## Backup e restauração (Postgres/Neon)
 
-- **Neon:** restore point-in-time de 7 dias no plano free (console → branch →
-  History/Reset). Também é possível criar branch de backup.
+- **Neon:** retenção observada de 6 horas no projeto Free em 23/nov/2026 (console → branch →
+  Backup & Restore); reconfirmar a janela antes de cada operação. Também é possível criar branch de backup.
 - **pg_dump:** use uma conexão direta com permissões mínimas para exportar um backup consistente: `pg_dump "$BACKUP_DATABASE_URL" -Fc -f eventpass-homolog.dump`.
 - **Teste de restauração:** restaure **somente em um banco descartável e isolado**, usando `pg_restore --dbname="$RESTORE_TEST_DATABASE_URL" --no-owner --no-acl eventpass-homolog.dump`. Verifique tabelas, contagens e fluxos críticos antes de considerar o backup recuperável. Nunca use a URL do banco de produção ou homologação como `RESTORE_TEST_DATABASE_URL`; não execute `pg_restore --clean` em bancos ativos.
 - **SQLite (referência):** `npm run db:backup` (VACUUM INTO + integrity_check).

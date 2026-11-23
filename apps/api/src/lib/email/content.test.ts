@@ -21,6 +21,9 @@ describe('React Email templates', () => {
     expect(message.text).toContain('anterior deixará de funcionar');
     expect(message.html).toContain('Recuperar ingresso');
   });
+  it.each(['ftp://localhost/token', 'javascript://localhost/token', 'https://user:secret@eventpass.example/token'])('rejects unsafe link %s', async (link) => {
+    await expect(renderEmail('ticket_recovery', { participantName: 'Ana', eventTitle: 'Evento', link }, 'ana@exemplo.test')).rejects.toThrow('Unsafe email link');
+  });
   it('rejects unsafe external links', async () => {
     await expect(renderEmail('ticket_recovery', {
       participantName: 'Ana', eventTitle: 'Evento',

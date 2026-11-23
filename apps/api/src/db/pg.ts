@@ -69,7 +69,10 @@ export class PgClient implements DbClient {
 
   async lock(key: number | string): Promise<void> {
     // Chave estável: ids numéricos direto, strings via hash simples.
-    const k = typeof key === 'number' ? key : Math.abs(hash(key)) % 2 ** 31;
+    // postgres.js returns bigint columns as decimal strings. Numeric strings
+    // must use the same lock as number IDs (including recovery INTEGER FKs).
+    const k = typeof key === 'number' || /^-?\d+$/.test(key)
+      ? String(key) : String(Math.abs(hash(key)) % 2 ** 31);
     await this.sql`SELECT pg_advisory_xact_lock(${k}::bigint)`;
   }
 

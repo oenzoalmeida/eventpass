@@ -13,7 +13,7 @@
  * Uso (precisa de `netlify login` feito):
  *   npm run build && node scripts/deploy-homolog.mjs
  */
-import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { delimiter, join } from 'node:path';
 
@@ -24,13 +24,13 @@ rmSync(OUT, { recursive: true, force: true });
 mkdirSync(OUT + '/functions', { recursive: true });
 cpSync('apps/web/dist', OUT + '/dist', { recursive: true });
 cpSync('apps/api/src', OUT + '/src', { recursive: true });
-writeFileSync(
-  OUT + '/functions/api.ts',
-  readFileSync('apps/api/netlify/functions/api.ts', 'utf8').replace(
-    '../../src/netlify.js',
-    '../src/netlify.js',
-  ),
-);
+// Preserve every function, including the scheduled outbox worker.
+for (const file of readdirSync('apps/api/netlify/functions').filter((name) => name.endsWith('.ts'))) {
+  writeFileSync(
+    OUT + '/functions/' + file,
+    readFileSync('apps/api/netlify/functions/' + file, 'utf8').replaceAll('../../src/', '../src/'),
+  );
+}
 writeFileSync(
   OUT + '/package.json',
   JSON.stringify({ name: 'eventpass-deploy', private: true }, null, 2) + '\n',

@@ -22,16 +22,19 @@ export { openDatabase, migrate as migrateSqlite } from './database.js';
 export async function openDb(env: Env): Promise<{ db: DbClient; applied: string[] }> {
   if (env.DATABASE_DIALECT === 'postgres') {
     const pg = new PgClient(env.DATABASE_URL, { ssl: env.DATABASE_SSL ?? true });
-    if (env.DB_AUTO_MIGRATE) {
-      const applied = await migratePostgres(pg);
-      return { db: pg, applied };
+    try {
+      if (env.DB_AUTO_MIGRATE) {
+        const applied = await migratePostgres(pg);
+        return { db: pg, applied };
+      }
+      await assertMigrationsUpToDate(pg, 'npm run db:migrate (com DATABASE_DIALECT=postgres)');
+      return { db: pg, applied: [] };
+    } catch (error) {
+      await pg.close();
+      throw error;
     }
-    await assertMigrationsUpToDate(
-      pg,
-      'npm run db:migrate (com DATABASE_DIALECT=postgres) ou defina DB_AUTO_MIGRATE=true',
-    );
-    return { db: pg, applied: [] };
   }
+
   const sqlite = new SqliteClient(openDatabase(env.DATABASE_URL));
   if (env.DB_AUTO_MIGRATE) {
     const applied = migrateSqlite(sqlite.raw());

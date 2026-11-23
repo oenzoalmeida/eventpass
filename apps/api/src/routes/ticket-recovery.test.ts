@@ -98,3 +98,32 @@ describe('ticket recovery (all email delivery mocked)', () => {
     expect(realRequest.body).toBe(unknown.body);
   });
 });
+
+describe('recovery expiry, concurrency and throttling', () => {
+  async function requestToken() {
+    const ev = await createPublishedEvent(app, cookie);
+    await register(app, ev.slug, 'Ficticia', 'ficticia@example.test');
+    await app.inject({ method: 'POST', url: '/api/public/tickets/recovery/request', payload: { slug: ev.slug, email: 'ficticia@example.test' } });
+    const job = await db.get<{ payload_ciphertext: string; idempotency_key: string }>("SELECT payload_ciphertext,idempotency_key FROM email_outbox WHERE kind='ticket_recovery'");
+    const raw = decryptEmailPayload(job!.payload_ciphertext, decodeEmailKey(encryptionKey), job!.idempotency_key);
+    return { ev, token: new URL(JSON.parse(raw).link).pathname.split('/').pop()! };
+  }
+  it('refuses an expired token without rotating the ticket', async () => {
+    const { token } = await requestToken();
+    await db.run("UPDATE ticket_recovery_requests SET expires_at='2000-01-01T00:00:00.000Z'");
+    const before = await db.get('SELECT qr_token_hash FROM registrations');
+    expect((await app.inject({ method: 'POST', url: '/api/public/tickets/recovery/confirm', payload: { token } })).statusCode).toBe(400);
+    expect(await db.get('SELECT qr_token_hash FROM registrations')).toEqual(before);
+  });
+  it('permits only one concurrent redemption', async () => {
+    const { token } = await requestToken();
+    const results = await Promise.all(Array.from({ length: 2 }, () => app.inject({ method: 'POST', url: '/api/public/tickets/recovery/confirm', payload: { token } })));
+    expect(results.map((r) => r.statusCode).sort()).toEqual([200, 400]);
+  });
+  it('limits requests both per registration and per IP', async () => {
+    const { ev } = await requestToken();
+    for (let i = 0; i < 4; i++) expect((await app.inject({ method: 'POST', url: '/api/public/tickets/recovery/request', payload: { slug: ev.slug, email: 'ficticia@example.test' } })).statusCode).toBe(202);
+    expect((await db.all('SELECT id FROM ticket_recovery_requests')).length).toBe(3);
+    expect((await app.inject({ method: 'POST', url: '/api/public/tickets/recovery/request', payload: { slug: ev.slug, email: 'ficticia@example.test' } })).statusCode).toBe(429);
+  });
+});

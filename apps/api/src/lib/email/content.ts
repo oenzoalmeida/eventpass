@@ -15,7 +15,7 @@ export interface EmailContent {
  */
 export async function renderEmail(kind: EmailKind, payload: EmailContent, recipient: string): Promise<EmailMessage> {
   const link = new URL(payload.link);
-  if (link.protocol !== 'https:' && link.hostname !== 'localhost') throw new Error('Unsafe email link');
+  if ((link.protocol !== 'https:' && !(link.protocol === 'http:' && link.hostname === 'localhost')) || link.username || link.password) throw new Error('Unsafe email link');
   const recovery = kind === 'ticket_recovery';
   const subject = recovery ? 'Recupere seu ingresso do EventPass' : 'Inscrição confirmada no EventPass';
   const title = recovery ? 'Recuperação de ingresso' : 'Inscrição confirmada';

@@ -42,7 +42,8 @@ export type Env = Omit<z.infer<typeof envSchema>, 'COOKIE_SECURE'> & { COOKIE_SE
 export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
   const parsed = envSchema.safeParse(source);
   if (!parsed.success) {
-    throw new Error(`Variáveis de ambiente inválidas: ${parsed.error.message}`);
+    // Validation details may contain the actual secret supplied as an invalid value.
+    throw new Error('Variáveis de ambiente inválidas. Confira os nomes e formatos configurados.');
   }
   const env = parsed.data;
   if (env.EMAIL_ENABLED) {
