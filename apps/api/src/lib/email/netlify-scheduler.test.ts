@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { loadEnv } from '../env.js';
 import { processEmailBatch } from '../scripts/email-worker.js';
-import handler, { config } from '../../netlify/functions/email-queue.js';
+import handler, { config } from '../../../netlify/functions/email-queue.js';
 
 describe('Netlify scheduled email worker safety', () => {
   it('uses a bounded cron schedule', () => {
