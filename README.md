@@ -102,6 +102,20 @@ Em produção a API serve o frontend compilado (`apps/web/dist`), então tudo ro
 
 ## Arquitetura
 
+Visão da versão principal deste repositório (`main`):
+
+```mermaid
+flowchart LR
+  P[Participante] --> WEB[Interface React]
+  O[Organizador] --> WEB
+  WEB --> API[API Node.js / Fastify]
+  API --> SQL[(SQLite no servidor)]
+  API --> QR[Inscrição e check-in por QR Code]
+  API --> RP[Relatórios e pontuação]
+```
+
+A migração para PostgreSQL/Neon e Netlify Functions está documentada separadamente em homologação; o diagrama acima não descreve essa variante.
+
 ```
 apps/
   api/                 Fastify + TypeScript
