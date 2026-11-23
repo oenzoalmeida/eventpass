@@ -101,4 +101,14 @@ describe('email outbox (disabled foundation)', () => {
     expect(await db.all('SELECT id FROM email_outbox')).toHaveLength(1);
   });
 
+  it('keeps an independent queued operation ahead of the next transaction', async () => {
+    let entered!:()=>void;let release!:()=>void;
+    const inside=new Promise<void>(r=>{entered=r;});const gate=new Promise<void>(r=>{release=r;});
+    const first=db.transaction(async()=>{entered();await gate;});await inside;
+    const independent=enqueueEmail(db,sample(),'2026-11-22T12:00:00.000Z');
+    const second=db.transaction(async()=>{throw new Error('rollback next transaction');});
+    release();await first;await independent;await expect(second).rejects.toThrow('rollback next transaction');
+    expect(await db.all('SELECT id FROM email_outbox')).toHaveLength(1);
+  });
+
 });

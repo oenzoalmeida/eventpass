@@ -17,17 +17,17 @@ export class SqliteClient implements DbClient {
   }
 
   async get<T>(sql: string, params: unknown[] = []): Promise<T | null> {
-    if (!this.inTransaction) await this.transactionTail;
+    if (!this.inTransaction) return this.exclusive(() => new SqliteClient(this.db, true).get<T>(sql, params));
     return (this.db.prepare(sql).get(...(params as never[])) as T) ?? null;
   }
 
   async all<T>(sql: string, params: unknown[] = []): Promise<T[]> {
-    if (!this.inTransaction) await this.transactionTail;
+    if (!this.inTransaction) return this.exclusive(() => new SqliteClient(this.db, true).all<T>(sql, params));
     return this.db.prepare(sql).all(...(params as never[])) as T[];
   }
 
   async run(sql: string, params: unknown[] = []): Promise<RunResult> {
-    if (!this.inTransaction) await this.transactionTail;
+    if (!this.inTransaction) return this.exclusive(() => new SqliteClient(this.db, true).run(sql, params));
     // INSERT ... RETURNING devolve linhas; o node:sqlite só aceita em .get().
     if (/\bRETURNING\b/i.test(sql)) {
       const row = this.db.prepare(sql).get(...(params as never[])) as
@@ -44,25 +44,28 @@ export class SqliteClient implements DbClient {
 
   async transaction<T>(fn: (tx: DbClient) => Promise<T>): Promise<T> {
     if (this.inTransaction) throw new Error('Nested SQLite transactions are not supported');
-    // Async callbacks yield between queries. Queue transactions on this shared
-    // connection so concurrent requests cannot issue a nested BEGIN.
+    return this.exclusive(async () => {
+      let began = false;
+      try {
+        this.db.exec('BEGIN IMMEDIATE');
+        began = true;
+        const result = await fn(new SqliteClient(this.db, true));
+        this.db.exec('COMMIT');
+        return result;
+      } catch (err) {
+        if (began) this.db.exec('ROLLBACK');
+        throw err;
+      }
+    });
+  }
+
+  private async exclusive<T>(fn: () => Promise<T>): Promise<T> {
     const previous = this.transactionTail;
     let release!: () => void;
     this.transactionTail = new Promise<void>((resolve) => { release = resolve; });
     await previous;
-    let began = false;
-    try {
-      this.db.exec('BEGIN IMMEDIATE');
-      began = true;
-      const result = await fn(new SqliteClient(this.db, true));
-      this.db.exec('COMMIT');
-      return result;
-    } catch (err) {
-      if (began) this.db.exec('ROLLBACK');
-      throw err;
-    } finally {
-      release();
-    }
+    try { return await fn(); }
+    finally { release(); }
   }
 
   async close(): Promise<void> {
