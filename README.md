@@ -159,7 +159,7 @@ Todas as rotas `/api/admin/*` exigem sessão de administrador.
 
 ## Etapas do projeto
 
-- [x] Repositório privado, commit inicial e arquivos básicos de documentação
+- [x] Repositório inicial, commit inicial e arquivos básicos de documentação
 - [x] Estrutura da aplicação e design system, com modo claro e escuro
 - [x] Banco de dados e autenticação administrativa
 - [x] Dashboard e gestão de eventos
