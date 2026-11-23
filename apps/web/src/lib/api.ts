@@ -100,6 +100,11 @@ export const api = {
     (await request(`/api/admin/events/${eventId}/report`, z.object({ report: eventReportSchema }))).report,
   registrationsCsvUrl: (eventId: number) => `/api/admin/events/${eventId}/registrations.csv`,
 
+  // Recuperação de ingressos (habilitação controlada no servidor)
+  publicFeatures: () => request('/api/public/features', z.object({ ticketRecovery: z.boolean() })),
+  requestTicketRecovery: (slug: string, email: string) => request('/api/public/tickets/recovery/request', z.object({ message: z.string() }), json('POST', { slug, email })),
+  confirmTicketRecovery: async (token: string) => (await request('/api/public/tickets/recovery/confirm', z.object({ ticketToken: z.string() }), json('POST', { token }))).ticketToken,
+
   // Público
   publicEvents: async () =>
     (await request('/api/public/events', z.object({ events: z.array(publicEventSchema) }))).events,

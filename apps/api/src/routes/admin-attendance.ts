@@ -123,6 +123,18 @@ export async function adminAttendanceRoutes(app: FastifyInstance) {
         }
         // Trava a inscrição: dois leitores do mesmo QR não geram dois check-ins.
         await tx.lock(reg.id);
+        // O ingresso pode ter sido rotacionado pela recuperação enquanto aguardávamos a trava.
+        // Revalidar sob a mesma trava impede check-in com QR antigo em corrida concorrente.
+        const fresh = await tx.get<{ qr_token_hash: string; status: string }>(
+          'SELECT qr_token_hash, status FROM registrations WHERE id = ?',
+          [reg.id],
+        );
+        if (!fresh || fresh.qr_token_hash !== hashTicketToken(parsed.data.token)) {
+          return sendError(reply, 404, 'ticket_not_found', 'Ingresso inválido para este evento.');
+        }
+        if (fresh.status !== 'confirmed') {
+          return sendError(reply, 409, 'registration_cancelled', 'Esta inscrição foi cancelada.');
+        }
 
         const total = async () =>
           Number(

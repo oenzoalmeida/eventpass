@@ -28,6 +28,12 @@ const envSchema = z.object({
   COOKIE_SECURE: bool,
   /** Pasta do frontend compilado servida pela API. Vazio desativa. */
   WEB_DIST: z.string().default(''),
+  EMAIL_ENABLED: bool,
+  TICKET_RECOVERY_ENABLED: bool,
+  EMAIL_ENCRYPTION_KEY: z.string().optional(),
+  EMAIL_PUBLIC_BASE_URL: z.string().url().optional(),
+  EMAIL_FROM: z.string().optional(),
+  RESEND_API_KEY: z.string().optional(),
 });
 
 export type Env = Omit<z.infer<typeof envSchema>, 'COOKIE_SECURE'> & { COOKIE_SECURE: boolean };
@@ -38,6 +44,11 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
     throw new Error(`Variáveis de ambiente inválidas: ${parsed.error.message}`);
   }
   const env = parsed.data;
+  if (env.EMAIL_ENABLED) {
+    if (!env.EMAIL_ENCRYPTION_KEY || !env.EMAIL_PUBLIC_BASE_URL) throw new Error('Missing email configuration');
+    if (Buffer.from(env.EMAIL_ENCRYPTION_KEY, 'base64').length !== 32) throw new Error('Invalid email encryption key');
+    if (env.NODE_ENV === 'production' && !env.EMAIL_PUBLIC_BASE_URL.startsWith('https://')) throw new Error('Email public base URL must use HTTPS');
+  }
   return {
     ...env,
     COOKIE_SECURE: env.COOKIE_SECURE ?? env.NODE_ENV === 'production',

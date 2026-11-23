@@ -1,0 +1,20 @@
+[Unit]
+Description=EventPass email outbox batch worker
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=eventpass
+Group=eventpass
+WorkingDirectory=/opt/eventpass
+Environment=NODE_ENV=production
+Environment=DATABASE_URL=/var/lib/eventpass/eventpass.db
+Environment=DATABASE_DIALECT=sqlite
+EnvironmentFile=-/etc/eventpass/email.env
+ExecStart=/usr/bin/npm run email:process -w @eventpass/api
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/eventpass
+PrivateTmp=true

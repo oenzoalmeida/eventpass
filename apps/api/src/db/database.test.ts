@@ -16,7 +16,7 @@ function seed() {
 describe('migrações', () => {
   it('são idempotentes', () => {
     const db = openDatabase(':memory:');
-    expect(migrate(db)).toEqual(['001_initial.sql', '002_password_change.sql']);
+    expect(migrate(db)).toEqual(['001_initial.sql', '002_password_change.sql', '003_email_outbox.sql', '004_ticket_recovery.sql']);
     expect(migrate(db)).toEqual([]);
   });
 });

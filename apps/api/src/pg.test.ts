@@ -258,4 +258,49 @@ describePg('PostgreSQL (dialect do Neon)', () => {
     expect(csv.statusCode).toBe(200);
     expect(csv.body).toContain('bruno@exemplo.test');
   });
+  it('supports encrypted ticket recovery on disposable PostgreSQL', async () => {
+    const { randomBytes } = await import('node:crypto');
+    const { createPublishedEvent, register } = await import('./test-utils.js');
+    const { decryptEmailPayload, decodeEmailKey } = await import('./lib/email/crypto.js');
+    const key = randomBytes(32).toString('base64');
+    const emailEnv = loadEnv({
+      ...process.env, NODE_ENV: 'test',
+      EMAIL_ENABLED: 'true', TICKET_RECOVERY_ENABLED: 'true',
+      EMAIL_ENCRYPTION_KEY: key, EMAIL_PUBLIC_BASE_URL: 'https://eventpass.example',
+    });
+    const enabledApp = await buildApp(emailEnv, db);
+    try {
+      const authCookie = await loginCookie(enabledApp);
+      const ev = await createPublishedEvent(enabledApp, authCookie);
+      const registered = await register(enabledApp, ev.slug, 'Ana', 'ana@exemplo.test');
+      expect(registered.statusCode).toBe(201);
+      const before = registered.json().ticketToken;
+      const requested = await enabledApp.inject({
+        method: 'POST', url: '/api/public/tickets/recovery/request',
+        payload: { slug: ev.slug, email: 'ana@exemplo.test' },
+      });
+      expect(requested.statusCode).toBe(202);
+      const job = await db.get<{ idempotency_key: string; payload_ciphertext: string }>(
+        "SELECT idempotency_key, payload_ciphertext FROM email_outbox WHERE kind = 'ticket_recovery'",
+      );
+      expect(job).not.toBeNull();
+      const decrypted = decryptEmailPayload(job!.payload_ciphertext, decodeEmailKey(key), job!.idempotency_key);
+      const token = new URL(JSON.parse(decrypted).link).pathname.split('/').pop();
+      const used = await enabledApp.inject({
+        method: 'POST', url: '/api/public/tickets/recovery/confirm', payload: { token },
+      });
+      expect(used.statusCode).toBe(200);
+      expect(used.json().ticketToken).not.toBe(before);
+      const { hashTicketToken } = await import('./lib/tickets.js');
+      const stored = await db.get<{ qr_token_hash: string }>(
+        "SELECT qr_token_hash FROM registrations WHERE id = (SELECT registration_id FROM ticket_recovery_requests WHERE token_hash = ?)",
+        [hashTicketToken(token!)],
+      );
+      expect(stored?.qr_token_hash).toBe(hashTicketToken(used.json().ticketToken));
+      expect((await enabledApp.inject({ method: 'GET', url: '/api/public/tickets/' + before })).statusCode).toBe(404);
+    } finally {
+      await enabledApp.close();
+    }
+  });
+
 });

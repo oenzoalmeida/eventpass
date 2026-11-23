@@ -33,8 +33,19 @@ export async function openDb(env: Env): Promise<{ db: DbClient; applied: string[
     return { db: pg, applied: [] };
   }
   const sqlite = new SqliteClient(openDatabase(env.DATABASE_URL));
-  const applied = migrateSqlite(sqlite.raw());
-  return { db: sqlite, applied };
+  if (env.DB_AUTO_MIGRATE) {
+    const applied = migrateSqlite(sqlite.raw());
+    return { db: sqlite, applied };
+  }
+  // SQLite em produção também deve respeitar DB_AUTO_MIGRATE=false.
+  // Falha fechado se a migração ainda não foi aplicada explicitamente.
+  try {
+    await assertMigrationsUpToDate(sqlite, 'npm run db:migrate (DATABASE_DIALECT=sqlite)');
+  } catch (err) {
+    await sqlite.close();
+    throw err;
+  }
+  return { db: sqlite, applied: [] };
 }
 
 /** Falha rápido se o banco não está na versão do código (manifesto, sem disco). */

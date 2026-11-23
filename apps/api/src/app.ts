@@ -13,12 +13,15 @@ import { authRoutes } from './routes/auth.js';
 import { adminEventRoutes } from './routes/admin-events.js';
 import { adminAttendanceRoutes } from './routes/admin-attendance.js';
 import { publicRoutes } from './routes/public.js';
+import { recoveryRoutes } from './routes/ticket-recovery.js';
 import { serveWeb } from './static.js';
 
 export async function buildApp(env: Env, db: DbClient) {
   const app = Fastify({
     logger: env.NODE_ENV === 'test' ? false : { level: 'info' },
     trustProxy: env.NODE_ENV === 'production',
+    // Ticket/recovery bearer tokens appear in URL paths; disable default request URL logs.
+    disableRequestLogging: true,
   });
 
   app.decorate('db', db);
@@ -90,7 +93,8 @@ export async function buildApp(env: Env, db: DbClient) {
   await app.register(authRoutes(env));
   await app.register(adminEventRoutes);
   await app.register(adminAttendanceRoutes);
-  await app.register(publicRoutes);
+  await app.register(async (child) => publicRoutes(child, env));
+  await app.register(recoveryRoutes(env));
   if (env.WEB_DIST) await serveWeb(app, env.WEB_DIST);
 
   return app;

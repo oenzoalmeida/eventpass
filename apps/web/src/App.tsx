@@ -13,6 +13,7 @@ import { DemoPage } from './public/DemoPage';
 import { HomePage } from './public/HomePage';
 import { EventPage } from './public/EventPage';
 import { TicketPage } from './public/TicketPage';
+import { TicketRecoveryPage } from './public/TicketRecoveryPage';
 
 function NotFound() {
   return (
@@ -55,6 +56,9 @@ function Routes() {
   if (path.startsWith('/admin')) return <AdminRoutes path={path} />;
   let m = matchPath('/e/:slug', path);
   if (m) return <EventPage key={m.slug} slug={m.slug!} />;
+  if (path === '/recuperar-ingresso') return <TicketRecoveryPage />;
+  m = matchPath('/recuperar-ingresso/:token', path);
+  if (m) return <TicketRecoveryPage key={m.token} token={m.token!} />;
   m = matchPath('/ingresso/:token', path);
   if (m) return <TicketPage key={m.token} token={m.token!} />;
   return <NotFound />;

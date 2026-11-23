@@ -1,4 +1,7 @@
 import type { FastifyInstance } from 'fastify';
+import type { Env } from '../env.js';
+import { enqueueEmail } from '../lib/email/outbox.js';
+import { encryptNotification } from '../lib/email/payload.js';
 import { registrationInputSchema, type Leaderboard, type Ticket } from '@eventpass/shared';
 import { getEventBySlug, listEvents, toPublicEvent } from '../lib/events-repo.js';
 import { nowIso, sendError, sendValidationError } from '../lib/http.js';
@@ -12,7 +15,7 @@ export function displayName(full: string): string {
   return last ? `${first} ${last[0]!.toUpperCase()}.` : first;
 }
 
-export async function publicRoutes(app: FastifyInstance) {
+export async function publicRoutes(app: FastifyInstance, env: Env) {
   const db = app.db;
 
   app.get('/api/public/events', async () => {
@@ -45,21 +48,16 @@ export async function publicRoutes(app: FastifyInstance) {
 
       // A trava serializa requisições concorrentes no mesmo evento:
       // BEGIN IMMEDIATE no SQLite, pg_advisory_xact_lock no Postgres.
-      return db.transaction(async (tx) => {
+      const outcome = await db.transaction(async (tx) => {
         let event = await getEventBySlug(tx, slug);
         if (!event || event.status === 'draft')
-          return sendError(reply, 404, 'not_found', 'Evento não encontrado.');
+          return { status: 404, code: 'not_found', message: 'Evento não encontrado.' };
         await tx.lock(event.id);
         // Relê sob a trava: a contagem de vagas precisa refletir quem já entrou.
         event = (await getEventBySlug(tx, slug))!;
         const pub = toPublicEvent(event);
         if (event.status !== 'published' || event.endsAt <= nowIso()) {
-          return sendError(
-            reply,
-            409,
-            'registrations_closed',
-            'As inscrições para este evento estão encerradas.',
-          );
+          return { status: 409, code: 'registrations_closed', message: 'As inscrições para este evento estão encerradas.' };
         }
 
         await tx.run(
@@ -76,15 +74,10 @@ export async function publicRoutes(app: FastifyInstance) {
           [event.id, participant!.id],
         );
         if (existing?.status === 'confirmed') {
-          return sendError(
-            reply,
-            409,
-            'already_registered',
-            'Este e-mail já está inscrito neste evento.',
-          );
+          return { status: 409, code: 'already_registered', message: 'Este e-mail já está inscrito neste evento.' };
         }
         if (pub.spotsLeft <= 0) {
-          return sendError(reply, 409, 'sold_out', 'As vagas deste evento estão esgotadas.');
+          return { status: 409, code: 'sold_out', message: 'As vagas deste evento estão esgotadas.' };
         }
 
         if (existing) {
@@ -99,8 +92,17 @@ export async function publicRoutes(app: FastifyInstance) {
             [event.id, participant!.id, hash],
           );
         }
-        return reply.code(201).send({ ticketToken: token });
+        if (env.EMAIL_ENABLED) {
+          const idempotencyKey = 'registration:' + event.id + ':' + participant!.id + ':' + hash;
+          const link = new URL('/ingresso/' + token, env.EMAIL_PUBLIC_BASE_URL!).toString();
+          const payloadCiphertext = encryptNotification({ participantName: name, eventTitle: event.title, link }, env.EMAIL_ENCRYPTION_KEY!, idempotencyKey);
+          await enqueueEmail(tx, { idempotencyKey, kind: 'registration_confirmation', recipientEmail: email, payloadCiphertext });
+        }
+        return { ticketToken: token };
       });
+      // Só libera o ingresso ao navegador depois de confirmar o commit da inscrição.
+      if ('ticketToken' in outcome) return reply.code(201).send(outcome);
+      return sendError(reply, outcome.status, outcome.code, outcome.message);
     },
   );
 

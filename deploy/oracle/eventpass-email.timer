@@ -1,0 +1,11 @@
+[Unit]
+Description=Poll EventPass email outbox every minute
+
+[Timer]
+OnCalendar=*:0/1
+Persistent=true
+AccuracySec=10s
+Unit=eventpass-email.service
+
+[Install]
+WantedBy=timers.target

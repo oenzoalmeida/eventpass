@@ -13,6 +13,7 @@ export function EventPage({ slug }: { slug: string }) {
   const { status, data: event, error, reload } = useAsync(() => api.publicEvent(slug), [slug]);
   const [errors, setErrors] = useState<Errors>({});
   const [sending, setSending] = useState(false);
+  const { data: features } = useAsync(() => api.publicFeatures(), []);
 
   if (status === 'loading') return <PageSkeleton />;
   if (status === 'error') {
@@ -100,6 +101,9 @@ export function EventPage({ slug }: { slug: string }) {
         ) : (
           <Alert tone="info" className="mt-4" title={event.spotsLeft === 0 ? 'Vagas esgotadas' : 'Este evento não está recebendo inscrições'} />
         )}
+        {features?.ticketRecovery ? (
+          <p className="mt-4 text-xs"><Link href={'/recuperar-ingresso?evento=' + encodeURIComponent(slug)} className="text-primary underline">Já se inscreveu? Recupere seu ingresso</Link></p>
+        ) : null}
       </Card>
     </div>
   );
