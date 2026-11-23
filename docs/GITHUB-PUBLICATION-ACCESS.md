@@ -1,23 +1,47 @@
-# Acesso mínimo para publicar os commits EventPass
+# Publicação dos commits EventPass: dois bloqueios independentes
 
-Estado: proposta de intervenção, não executada e não autorizada como nova credencial. Nenhum segredo solicitado aqui. O objetivo é preservar os commits locais exatos, não recriá-los pelo editor web.
+Estado em 23/11/2026: não publicado. Acesso Git e isolamento pré-push são requisitos separados. Obter uma credencial não autoriza nem torna seguro o push.
 
-O Git local não tem credencial/helper/SSH, gh está deslogado e dry-run falhou antes de escrever. A integração existente está conectada, mas não oferece envio de objetos Git. PATs de outros trabalhos não serão reutilizados.
+## 1. Isolamento antes de qualquer publicação
 
-## Rota preferida, se autorizada
+A regra local vercel.json desabilita deploy apenas de fix/email-homologation-20261123. Foi validada contra o schema oficial, mas não prova ausência de outros consumidores. Conferência pós-push será validação adicional, nunca experimento para descobrir gatilhos.
 
-- Credencial fine-grained de curta duração, exclusiva de oenzoalmeida/eventpass.
-- Resource owner: oenzoalmeida. Repository access: only selected repository eventpass.
-- Contents: Read and write. Workflows: Write, porque esta revisão altera .github/workflows/ci.yml. MetadataRead é implícito. Sem administração, secrets ou outros repositórios.
-- Receber somente por cofre com permissão de uso por comando. Não mandar token em chat, não inserir no URL do remote, argumentos, commits ou logs.
-- Fazer dry-run com HTTPS e credencial efêmera por canal privado, publicar somente fix/email-homologation-20261123, conferir SHA remoto idêntico, CI sobre esse SHA e ausência de deployment Vercel. Revogar/descartar a credencial ao concluir.
-- O arquivo vercel.json da branch desabilita deploy só nela, conforme documentação oficial e schema validado. Não alterar projeto/produção. Outros consumidores Git não devem ser presumidos inofensivos; parar se qualquer efeito de deploy aparecer.
-- A regra não torna CI ou isolamento pós-push já concluídos. PR continua proposta até aprovação das palavras, sem merge.
+Inspeção somente leitura:
 
-O fluxo gh auth login por navegador também existe, mas pede acesso mais amplo e pode usar arquivo local se não encontrar armazenamento seguro. Não foi iniciado por não ser a opção de menor acesso para este push.
+- Vercel: projeto EventPass conectado ao GitHub e previews automáticos observados. Regra de branch preparada, nenhuma configuração sensível alterada.
+- GitHub: página de webhooks não mostrou hooks. A lista de Apps inclui Vercel, Render, Northflank, Base44, blitz.cloud e Lovable, entre outros. Ter acesso ao repositório não demonstra que cada App faz deploy, mas também não demonstra ausência de gatilhos.
+- Render: dois workspaces visíveis. QueueFlow mostrou um projeto sem serviços ativos; PenteFino mostrou um único serviço ligado a oenzoalmeida/pentefino, não EventPass. Nenhum serviço EventPass foi encontrado nesses inventários. Não alterar esse outro projeto.
+- Northflank: login por GitHub chegou a nova autorização de leitura de endereços de email. Não concedida. Inventário de serviços e regras de branch continuam desconhecidos.
+- Configuração individual das instalações GitHub pediu reautenticação sudo. Não se verificou o escopo efetivo dos demais Apps nem os projetos/eventos associados a eles.
 
-## Fontes
+Conclusão: o isolamento global pré-push NÃO está comprovado. Não publicar para descobrir. A intervenção mínima seguinte é concluir acesso somente leitura às instalações e aos inventários dos consumidores ainda não resolvidos. Se esse acesso exigir nova concessão, obter autorização específica antes dela. A alternativa é o proprietário fornecer evidência verificável de que EventPass não está associado a esses consumidores, ou isolar somente EventPass neles e permitir a conferência. Não remover Apps da conta nem modificar outros projetos ou produção como atalho.
 
+Só depois dessa prova se justifica pedir acesso Git. Não coletar token agora.
+
+## 2. Acesso Git, após resolver o isolamento
+
+Git local sem credencial/helper/SSH utilizável; gh deslogado; push dry-run falhou antes de escrever. A conexão existente não oferece envio dos objetos Git locais. Não recriar commits pelo editor web nem reutilizar credenciais de outro trabalho.
+
+Proposta condicionada, não autorizada nem iniciada:
+
+- Fine-grained PAT de curta duração, exclusivo de oenzoalmeida/eventpass.
+- Contents: Read and write; Workflows: Write, pois ci.yml é alterado; Metadata Read implícito. Sem administração, secrets ou outros repositórios.
+- Receber apenas por cofre, com autorização de uso por comando. Há suporte para entregar um valor salvo a arquivo privado 0600 sem retornar o conteúdo.
+- Helper HTTPS efêmero pode ler esse arquivo diretamente no processo Git, com escopo de host e caminho exatos. Não colocar token em URL, argumentos, logs ou configuração persistente. Não ativar trace. Apagar arquivo/helper ao concluir. Essa rota é suportada, mas ainda não testada com credencial real e não foi iniciada.
+- Depois de ambos os bloqueios resolvidos: dry-run, push somente da branch aprovada, SHA remoto idêntico, GitHub Actions nesse SHA e conferência adicional de ausência de deploy. Nenhum merge. PR continua texto proposto até aprovação das palavras.
+
+O login gh pelo navegador não foi iniciado: pode pedir acesso mais amplo que o mínimo desta proposta.
+
+## Fontes inspecionadas
+
+- https://github.com/oenzoalmeida/eventpass/settings/installations?page=1
+- https://github.com/oenzoalmeida/eventpass/settings/installations?page=2
+- https://github.com/oenzoalmeida/eventpass/settings/hooks
+- https://github.com/settings/installations/171173568
+- https://github.com/settings/installations/157061511
+- https://dashboard.render.com/
+- https://dashboard.render.com/web/srv-dai6ltm1egvs73cr5890
+- https://app.northflank.com/login
 - https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens
-- https://cli.github.com/manual/gh_auth_login
+- https://git-scm.com/docs/gitcredentials
 - https://vercel.com/docs/project-configuration/git-configuration
