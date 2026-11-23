@@ -8,6 +8,7 @@ import type { DbClient, RunResult } from './client.js';
  */
 export class SqliteClient implements DbClient {
   readonly dialect = 'sqlite' as const;
+  private transactionTail: Promise<void> = Promise.resolve();
 
   constructor(private readonly db: DatabaseSync) {}
 
@@ -39,14 +40,24 @@ export class SqliteClient implements DbClient {
   }
 
   async transaction<T>(fn: (tx: DbClient) => Promise<T>): Promise<T> {
-    this.db.exec('BEGIN IMMEDIATE');
+    // Async callbacks yield between queries. Queue transactions on this shared
+    // connection so concurrent requests cannot issue a nested BEGIN.
+    const previous = this.transactionTail;
+    let release!: () => void;
+    this.transactionTail = new Promise<void>((resolve) => { release = resolve; });
+    await previous;
+    let began = false;
     try {
+      this.db.exec('BEGIN IMMEDIATE');
+      began = true;
       const result = await fn(this);
       this.db.exec('COMMIT');
       return result;
     } catch (err) {
-      this.db.exec('ROLLBACK');
+      if (began) this.db.exec('ROLLBACK');
       throw err;
+    } finally {
+      release();
     }
   }
 

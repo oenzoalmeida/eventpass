@@ -77,4 +77,16 @@ describe('email outbox (disabled foundation)', () => {
     expect(await markEmailSent(db, first!)).toBe(false);
     expect(await markEmailSent(db, second!)).toBe(true);
   });
+  it('serializes concurrent SQLite workers without nested transaction errors', async () => {
+    await enqueueEmail(db, sample(), '2026-11-22T12:00:00.000Z');
+    const claims = await Promise.all([claimEmail(db, '2026-11-22T12:00:00.000Z'), claimEmail(db, '2026-11-22T12:00:00.000Z')]);
+    expect(claims.filter(Boolean)).toHaveLength(1);
+  });
+
+  it('releases the SQLite transaction queue after rollback', async () => {
+    await expect(db.transaction(async () => { throw new Error('fixture failure'); })).rejects.toThrow('fixture failure');
+    await enqueueEmail(db, sample(), '2026-11-22T12:00:00.000Z');
+    expect(await claimEmail(db, '2026-11-22T12:00:00.000Z')).not.toBeNull();
+  });
+
 });

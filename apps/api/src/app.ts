@@ -55,7 +55,7 @@ export async function buildApp(env: Env, db: DbClient) {
   });
   app.addHook('preHandler', loadAdmin(db));
   // Erros transientes (ex.: conexão Postgres) retornam o mesmo contrato
-  // {error, message} das respostas de erro intencionais, com log do causador.
+  // {error, message} das respostas de erro intencionais, com código de erro sem conteúdo sensível.
   app.setErrorHandler((err: FastifyError, request, reply) => {
     // Erros esperados do framework seguem o mesmo contrato pt-BR das respostas
     // intencionais: o frontend mostra `message` diretamente para o usuário.
@@ -79,12 +79,13 @@ export async function buildApp(env: Env, db: DbClient) {
     }
     // Demais erros do framework (ex.: 415 de mídia) seguem o fluxo padrão.
     if (err.statusCode && err.statusCode !== 500) throw err;
-    request.log.error(err, 'erro não tratado');
+    // Database/provider errors can contain email addresses or bearer tokens.
+    request.log.error({ code: 'internal_error' }, 'erro não tratado');
     return reply.code(500).send({ error: 'internal_error', message: 'Erro interno. Tente novamente.' });
   });
 
   const purge = setInterval(() => {
-    purgeExpiredSessions(db).catch((err) => app.log.error(err, 'falha ao limpar sessões'));
+    purgeExpiredSessions(db).catch(() => app.log.error({ code: 'session_cleanup_failed' }, 'falha ao limpar sessões'));
   }, 3600_000);
   purge.unref();
   app.addHook('onClose', async () => clearInterval(purge));
