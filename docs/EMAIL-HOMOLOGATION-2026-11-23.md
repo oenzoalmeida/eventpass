@@ -1,3 +1,5 @@
+> Registro histórico da rodada v3. A continuação autorizada10:27 e seus resultados novos estão em EMAIL-OPERATIONS-REVIEW-2026-11-23.md. As contagens abaixo são da rodada anterior, não do código atual.
+
 # EventPass, ensaio técnico de 23/nov/2026
 
 ## Base e limites

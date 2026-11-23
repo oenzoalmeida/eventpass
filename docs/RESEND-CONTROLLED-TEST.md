@@ -22,7 +22,7 @@ Para uso real com outros destinatários, é necessário domínio sob controle do
 
 ## Limites e risco de duplicidade
 
-Free consultado: 3.000/mês,100/dia. Cron de5min e1job tem teto teórico288 tentativas/dia, superior à cota diária. Falhas e retries também usam capacidade; não considerar isso controle automático de cota. Não ativar até medir volume e confirmar margem diária/mensal da conta inteira, incluindo outras aplicações e caminhos manuais. O código não tem contador transacional de cota da conta. Reduzir a frequência sozinho não protege a conta e pode invalidar recuperação de15min antes do envio. A conta e o volume são dependências ainda abertas, não capacidade aprovada. Chaves idempotentes duram24h. A outbox é at-least-once, não exatamente uma vez após falha de rede, pausa longa ou restauração de snapshot.
+Free consultado: 3.000/mês,100/dia. Cron de5min e1job tem teto teórico288 tentativas/dia, superior à cota diária. Falhas e retries também usam capacidade; não considerar isso controle automático de cota. Não ativar até medir volume e confirmar margem diária/mensal da conta inteira, incluindo outras aplicações e caminhos manuais. A continuação10:27 adicionou contador transacional da alocação EventPass, com padrõesfalse/0/0, mas ele não consulta nem controla outros consumidores da conta. Reduzir a frequência sozinho não protege a conta e pode invalidar recuperação de15min antes do envio. A conta e o volume são dependências ainda abertas, não capacidade aprovada. Chaves idempotentes duram24h. A outbox é at-least-once, não exatamente uma vez após falha de rede, pausa longa ou restauração de snapshot.
 
 ## Fontes oficiais consultadas
 
