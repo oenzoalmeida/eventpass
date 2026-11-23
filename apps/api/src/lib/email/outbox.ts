@@ -1,3 +1,4 @@
+import { EmailBudgetUnavailable } from './budget.js';
 import { randomUUID } from 'node:crypto';
 import type { DbClient } from '../../db/client.js';
 import type { EmailKind, EmailMessage, EmailProvider } from './provider.js';
@@ -113,8 +114,12 @@ export async function processOneEmail(
     if (message.to !== job.recipientEmail) throw new Error('Recipient mismatch');
     await provider.send(message, job.idempotencyKey);
     await markEmailSent(db, job);
-  } catch {
-    await markEmailFailed(db, job);
+  } catch (error) {
+    if (error instanceof EmailBudgetUnavailable) {
+      // No external I/O occurred. Keep the delivery attempt for later, not terminal.
+      await db.run("UPDATE email_outbox SET status = 'pending', attempts = attempts - 1, next_attempt_at = ?, lease_until = NULL, lease_token = NULL, last_error_code = 'budget_unavailable', updated_at = ? WHERE id = ? AND lease_token = ?",
+        [new Date(Date.now() + 3600_000).toISOString(), nowIso(), job.id, job.leaseToken]);
+    } else await markEmailFailed(db, job);
   }
   return true;
 }

@@ -296,7 +296,7 @@ describePg('PostgreSQL (dialect do Neon)', () => {
       const http = vi.fn(async () => new Response('{"id":"mock"}', { status: 200 }));
       vi.stubGlobal('fetch', http);
       try {
-        expect(await processEmailBatch({ ...emailEnv, DATABASE_DIALECT: 'postgres', DATABASE_URL: url!, DATABASE_SSL: false, DB_AUTO_MIGRATE: false, EMAIL_FROM: 'test@example.test', RESEND_API_KEY: 'test-only' }, 1, true)).toBe(1);
+        expect(await processEmailBatch({ ...emailEnv, DATABASE_DIALECT: 'postgres', DATABASE_URL: url!, DATABASE_SSL: false, DB_AUTO_MIGRATE: false, EMAIL_FROM: 'test@example.test', EMAIL_BUDGET_CONFIRMED:true, EMAIL_DAILY_BUDGET: 10, EMAIL_MONTHLY_BUDGET: 100, RESEND_API_KEY: 'test-only' }, 1, true)).toBe(1);
         expect(http).toHaveBeenCalledTimes(1);
         expect(await db.get('SELECT status,payload_ciphertext FROM email_outbox')).toMatchObject({ status: 'sent', payload_ciphertext: '' });
       } finally { vi.unstubAllGlobals(); }
@@ -376,6 +376,13 @@ describePg('PostgreSQL (dialect do Neon)', () => {
     expect(jobs.filter(Boolean)).toHaveLength(1);
     const job=jobs.find(Boolean)!; expect(await markEmailSent(db,job)).toBe(true);
     expect((await db.get<{attempts:number}>('SELECT attempts FROM email_outbox'))?.attempts).toBe(1);
+  });
+
+  it('never exceeds the PostgreSQL budget during concurrent reservations', async () => {
+    const {reserveSendBudget}=await import('./lib/email/budget.js');
+    const attempts=await Promise.all(Array.from({length:10},()=>reserveSendBudget(db,3,3)));
+    expect(attempts.filter(Boolean)).toHaveLength(3);
+    expect((await db.all<{attempts:number}>('SELECT attempts FROM email_send_budget')).map(r=>r.attempts)).toEqual([3,3]);
   });
 
 });

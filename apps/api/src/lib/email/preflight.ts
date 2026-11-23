@@ -16,14 +16,14 @@ export async function inspectEmailSchema(db: DbClient): Promise<EmailSchemaPrefl
   const migrations = await db.all<{ name: string }>('SELECT name FROM schema_migrations');
   const applied = new Set(migrations.map((item) => item.name));
   const missingMigrations = PG_MIGRATIONS.filter((name) => !applied.has(name));
-  const expectedTables = ['email_outbox', 'ticket_recovery_requests'];
+  const expectedTables = ['email_outbox', 'ticket_recovery_requests', 'email_send_budget'];
   const existingTables = new Set(
     db.dialect === 'postgres'
       ? (await db.all<{ name: string }>(
-          "SELECT table_name AS name FROM information_schema.tables WHERE table_schema = current_schema() AND table_name IN ('email_outbox','ticket_recovery_requests')",
+          "SELECT table_name AS name FROM information_schema.tables WHERE table_schema = current_schema() AND table_name IN ('email_outbox','ticket_recovery_requests','email_send_budget')",
         )).map((row) => row.name)
       : (await db.all<{ name: string }>(
-          "SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('email_outbox','ticket_recovery_requests')",
+          "SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('email_outbox','ticket_recovery_requests','email_send_budget')",
         )).map((row) => row.name),
   );
   const missingTables = expectedTables.filter((table) => !existingTables.has(table));

@@ -5,4 +5,4 @@
  * inclui os arquivos .sql: em produção a verificação de versão do schema
  * usa esta lista, sem ler disco. Ao adicionar uma migration, atualize aqui.
  */
-export const PG_MIGRATIONS: readonly string[] = ['001_initial.sql', '002_password_change.sql', '003_email_outbox.sql', '004_ticket_recovery.sql'];
+export const PG_MIGRATIONS: readonly string[] = ['001_initial.sql', '002_password_change.sql', '003_email_outbox.sql', '004_ticket_recovery.sql', '005_email_operations.sql'];

@@ -20,7 +20,7 @@ describe('SQLite migration guard', () => {
     try {
       expect(applied).toContain('004_ticket_recovery.sql');
       const rows = await db.all<{ name: string }>('SELECT name FROM schema_migrations ORDER BY name');
-      expect(rows).toHaveLength(4);
+      expect(rows).toHaveLength(5);
     } finally {
       await db.close();
     }

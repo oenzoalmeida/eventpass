@@ -5,6 +5,7 @@ import { processOneEmail } from '../lib/email/outbox.js';
 import { decryptAndRenderNotification } from '../lib/email/payload.js';
 import { decryptEmailPayload, decodeEmailKey } from '../lib/email/crypto.js';
 import { hashTicketToken } from '../lib/tickets.js';
+import { reserveSendBudget, EmailBudgetUnavailable } from '../lib/email/budget.js';
 import { pruneEmailData } from '../lib/email/maintenance.js';
 
 /**
@@ -18,9 +19,10 @@ export async function processEmailBatch(env: Env, maxJobs = 20, scheduled = fals
   if (!env.EMAIL_ENCRYPTION_KEY || !env.RESEND_API_KEY || !env.EMAIL_FROM) {
     throw new Error('Email worker configuration incomplete');
   }
+  if (!env.EMAIL_BUDGET_CONFIRMED || !env.EMAIL_DAILY_BUDGET || !env.EMAIL_MONTHLY_BUDGET) return 0;
   if (!Number.isInteger(maxJobs) || maxJobs < 1 || maxJobs > 20) throw new Error('Invalid batch size');
   const deadline = scheduled ? Date.now() + 15_000 : Infinity;
-  const provider = new ResendEmailProvider({
+  const transport = new ResendEmailProvider({
     enabled: true,
     apiKey: env.RESEND_API_KEY,
     from: env.EMAIL_FROM,
@@ -28,6 +30,12 @@ export async function processEmailBatch(env: Env, maxJobs = 20, scheduled = fals
   });
   const { db } = await openDb(env, scheduled ? { connectTimeoutSeconds: 3, statementTimeoutMs: 1000, lockTimeoutMs: 1000, maxConnections: 1 } : {});
   try {
+    const provider = { send: async (...args: Parameters<ResendEmailProvider['send']>) => {
+      if (!await reserveSendBudget(db, env.EMAIL_DAILY_BUDGET, env.EMAIL_MONTHLY_BUDGET)) {
+        throw new EmailBudgetUnavailable('Email sending budget unavailable');
+      }
+      await transport.send(...args);
+    } };
     let count = 0;
     for (; count < maxJobs && Date.now() < deadline; count++) {
       const processed = await processOneEmail(db, provider, async (job) => {

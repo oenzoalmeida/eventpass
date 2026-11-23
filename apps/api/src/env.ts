@@ -30,6 +30,11 @@ const envSchema = z.object({
   /** Pasta do frontend compilado servida pela API. Vazio desativa. */
   WEB_DIST: z.string().default(''),
   EMAIL_ENABLED: bool,
+  EMAIL_MAINTENANCE_ENABLED: bool,
+  EMAIL_BUDGET_CONFIRMED: bool,
+  // Explicit allocation for this application's dedicated sending budget. Fail closed.
+  EMAIL_DAILY_BUDGET: z.coerce.number().int().min(0).max(100).default(0),
+  EMAIL_MONTHLY_BUDGET: z.coerce.number().int().min(0).max(3000).default(0),
   TICKET_RECOVERY_ENABLED: bool,
   EMAIL_ENCRYPTION_KEY: z.string().optional(),
   EMAIL_PUBLIC_BASE_URL: z.string().url().optional(),
