@@ -89,4 +89,16 @@ describe('email outbox (disabled foundation)', () => {
     expect(await claimEmail(db, '2026-11-22T12:00:00.000Z')).not.toBeNull();
   });
 
+  it('does not roll back an independent enqueue with another transaction', async () => {
+    let entered!: () => void; let release!: () => void;
+    const inside = new Promise<void>((resolve) => { entered = resolve; });
+    const gate = new Promise<void>((resolve) => { release = resolve; });
+    const rollback = db.transaction(async () => { entered(); await gate; throw new Error('fixture rollback'); });
+    await inside;
+    const enqueue = enqueueEmail(db, sample(), '2026-11-22T12:00:00.000Z');
+    release();
+    await expect(rollback).rejects.toThrow('fixture rollback'); await enqueue;
+    expect(await db.all('SELECT id FROM email_outbox')).toHaveLength(1);
+  });
+
 });

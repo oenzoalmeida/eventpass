@@ -37,10 +37,10 @@ Sem sessão ou credencial específica disponível. Login GitHub pede novo OAuth 
 
 - Node22.23.5. PostgreSQL14.24 descartável. Não confundir com PostgreSQL17 do Neon.
 - npm ci realizado; typecheck, lint, build e diff --check aprovados.
-- API100 testes aprovados; web22 aprovados. Os10 testes PostgreSQL não são executados por npm test sem ambiente dedicado; foram executados separadamente e os10 passaram.
+- API101 testes aprovados; web22 aprovados. Os10 testes PostgreSQL não são executados por npm test sem ambiente dedicado; foram executados separadamente e os10 passaram.
 - API HTTP empacotada com PostgreSQL:30/30. Dump/restore da fixture com1admin,1evento,3inscrições e4migrações, seguido de30/30 HTTP no destino restaurado. Sem backup/restauração de dados reais.
 - Worker real com HTTP simulado: renderiza, entrega uma vez, limpa ciphertext, retry de503 e bloqueio de inscrição cancelada. PostgreSQL inclui caminho agendado, bigint, rotação e check-in idempotente.
-- Concorrência SQLite reproduziu BEGIN aninhado ao executar duas claims na mesma conexão. Regressão falhou antes e passou com fila de transações; liberação da fila após rollback também verificada.
+- Concorrência SQLite reproduziu BEGIN aninhado ao executar duas claims na mesma conexão. Regressão falhou antes e passou com fila de transações; liberação da fila após rollback também verificada. Um segundo ensaio reproduziu enqueue externo revertido junto com transação alheia; operações externas agora aguardam a fila e o callback usa client transacional dedicado, com regressão antes/depois.
 - Logger de erro inesperado e limpeza de sessão não emite mais exceção bruta; regressão verifica ausência do conteúdo privado da exceção.
 - Inspeção de pixels: home/login desktop, recuperação mobile390px, confirmação React Email desktop e recuperação React Email mobile. Sem alteração de estilos globais, identidade visual ou componentes existentes.
 - Auditoria npm runtime:0vulnerabilidades.12moderadas continuam apenas na cadeia de ferramentas Netlify de desenvolvimento; não aplicar downgrade forçado sem avaliar.
@@ -49,7 +49,7 @@ Sem sessão ou credencial específica disponível. Login GitHub pede novo OAuth 
 
 A base está16commits à frente e0atrás da main observada. CI remoto aprovado continua relativo à base510ba86, não aos commits locais desta rodada. Nenhum PR aberto encontrado na consulta atual.
 
-Vercel possui projeto eventpass-homolog com o repositório conectado, deploy Preview da branch de e-mail e política de build Automatic. Build npm run build, output apps/web/dist, install npm ci, Node24.x. Variáveis DATABASE_URL,WEB_ORIGIN,COOKIE_SECURE somente no escopo Production. Nenhum valor revelado. Push não é operação neutra: pode disparar preview. Publicação remota retida até isolar gatilho/ambiente e resolver autenticação específica sem reutilizar credenciais de outros projetos. Nenhuma configuração externa foi alterada.
+Vercel possui projeto eventpass-homolog com o repositório conectado, deploy Preview da branch de e-mail e política de build Automatic. Build npm run build, output apps/web/dist, install npm ci, Node24.x. Variáveis DATABASE_URL,WEB_ORIGIN,COOKIE_SECURE somente no escopo Production. Nenhum valor revelado. Push não é operação neutra: pode disparar preview. Publicação remota retida: a configuração Automatic foi lida e não existe prova de bloqueio de deploy para a nova branch. Sem alterar conta/configuração remota ou inserir controle de deploy revisado, não há push demonstravelmente sem efeito. Continua necessário isolar gatilho/ambiente e resolver autenticação específica sem reutilizar credenciais de outros projetos. Nenhuma configuração externa foi alterada.
 
 - https://vercel.com/tech-lead1/eventpass-homolog/settings/git
 - https://vercel.com/tech-lead1/eventpass-homolog/settings/build-and-deployment
