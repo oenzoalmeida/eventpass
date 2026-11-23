@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, feat/email-notification-foundation]
+    branches: [main, feat/email-notification-foundation, fix/email-homologation-20261123]
   pull_request:
 
 jobs:
