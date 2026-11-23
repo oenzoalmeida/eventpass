@@ -15,7 +15,8 @@
     "db:backup": "tsx --env-file-if-exists=../../.env src/scripts/backup.ts",
     "email:process": "tsx --env-file-if-exists=../../.env src/scripts/process-email.ts",
     "email:preflight": "tsx --env-file-if-exists=../../.env src/scripts/email-preflight.ts",
-    "test:pg": "vitest run pg.test.ts"
+    "test:pg": "vitest run pg.test.ts",
+    "email:prune": "tsx --env-file-if-exists=../../.env src/scripts/prune-email.ts"
   },
   "dependencies": {
     "@eventpass/shared": "0.1.0",

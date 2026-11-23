@@ -8,26 +8,30 @@ import { hashTicketToken } from '../lib/tickets.js';
 import { pruneEmailData } from '../lib/email/maintenance.js';
 
 /**
- * One-shot batch processor. No scheduler is installed or enabled by this change.
+ * One-shot batch processor also used by the opt-in Netlify scheduled handler.
  * Run only in a separately approved environment with verified DNS and credentials.
  */
-export async function processEmailBatch(env: Env, maxJobs = 20): Promise<number> {
+export async function processEmailBatch(env: Env, maxJobs = 20, scheduled = false): Promise<number> {
   if (!env.EMAIL_ENABLED) {
     return 0;
   }
   if (!env.EMAIL_ENCRYPTION_KEY || !env.RESEND_API_KEY || !env.EMAIL_FROM) {
     throw new Error('Email worker configuration incomplete');
   }
+  if (!Number.isInteger(maxJobs) || maxJobs < 1 || maxJobs > 20) throw new Error('Invalid batch size');
+  const deadline = scheduled ? Date.now() + 15_000 : Infinity;
   const provider = new ResendEmailProvider({
     enabled: true,
     apiKey: env.RESEND_API_KEY,
     from: env.EMAIL_FROM,
+    timeoutMs: scheduled ? 5_000 : 10_000,
   });
-  const { db } = await openDb(env);
+  const { db } = await openDb(env, scheduled ? { connectTimeoutSeconds: 3, statementTimeoutMs: 1000, lockTimeoutMs: 1000, maxConnections: 1 } : {});
   try {
     let count = 0;
-    for (; count < maxJobs; count++) {
+    for (; count < maxJobs && Date.now() < deadline; count++) {
       const processed = await processOneEmail(db, provider, async (job) => {
+        if (Date.now() >= deadline) throw new Error('Scheduled delivery budget exhausted');
         const raw = decryptEmailPayload(
           job.payloadCiphertext, decodeEmailKey(env.EMAIL_ENCRYPTION_KEY!), job.idempotencyKey,
         );
@@ -57,13 +61,16 @@ export async function processEmailBatch(env: Env, maxJobs = 20): Promise<number>
           );
           if (!valid) throw new Error('Ticket no longer eligible');
         }
+        if (Date.now() >= deadline) throw new Error('Scheduled delivery budget exhausted');
         return decryptAndRenderNotification(
           job.kind, job.recipientEmail, job.payloadCiphertext, env.EMAIL_ENCRYPTION_KEY!, job.idempotencyKey,
         );
       });
       if (!processed) break;
     }
-    await pruneEmailData(db);
+    // Scheduled invocations reserve their short execution window for delivery.
+    // Retention runs through the separate bounded CLI maintenance path.
+    if (!scheduled) await pruneEmailData(db);
     return count;
   } finally {
     await db.close();

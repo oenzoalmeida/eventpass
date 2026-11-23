@@ -12,6 +12,10 @@ export interface PostgresOptions {
   ssl?: boolean;
   /** Preparo de statements: false (padrão) é obrigatório atrás do pooler do Neon. */
   prepare?: boolean;
+  connectTimeoutSeconds?: number;
+  statementTimeoutMs?: number;
+  lockTimeoutMs?: number;
+  maxConnections?: number;
 }
 
 /**
@@ -31,9 +35,13 @@ export class PgClient implements DbClient {
         ? postgres(urlOrSql, {
             ssl: opts.ssl ?? true,
             prepare: opts.prepare ?? false,
-            max: 10,
+            max: opts.maxConnections ?? 10,
             idle_timeout: 20,
-            connect_timeout: 10,
+            connect_timeout: opts.connectTimeoutSeconds ?? 10,
+            connection: {
+              ...(opts.statementTimeoutMs ? { statement_timeout: opts.statementTimeoutMs } : {}),
+              ...(opts.lockTimeoutMs ? { lock_timeout: opts.lockTimeoutMs } : {}),
+            },
             onnotice: () => {},
           })
         : urlOrSql;

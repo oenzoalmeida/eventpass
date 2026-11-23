@@ -38,4 +38,12 @@ describe('Resend provider (mock transport; no network)', () => {
     );
     await expect(provider.send(message, 'registration:42:v1')).rejects.toThrow('HTTP 422');
   });
+  it('aborts HTTP at the configured scheduled budget', async () => {
+    const http = vi.fn((_url: unknown, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
+      init!.signal!.addEventListener('abort', () => reject(new Error('aborted')), { once: true });
+    }));
+    const provider = new ResendEmailProvider({ apiKey: 'test-only', from: 'test@example.test', enabled: true, timeoutMs: 20 }, http as typeof fetch);
+    await expect(provider.send(message, 'timeout-test')).rejects.toThrow('aborted');
+  });
+
 });

@@ -1,7 +1,7 @@
 import type { Env } from '../env.js';
 import type { DbClient } from './client.js';
 import { SqliteClient } from './sqlite-client.js';
-import { PgClient, migratePostgres } from './pg.js';
+import { PgClient, migratePostgres, type PostgresOptions } from './pg.js';
 import { PG_MIGRATIONS } from './pg-migrations.js';
 import { openDatabase, migrate as migrateSqlite } from './database.js';
 
@@ -19,9 +19,9 @@ export { openDatabase, migrate as migrateSqlite } from './database.js';
  * arquivos .sql): se faltar migração, o processo falha com instrução clara em
  * vez de alterar o schema silenciosamente.
  */
-export async function openDb(env: Env): Promise<{ db: DbClient; applied: string[] }> {
+export async function openDb(env: Env, pgOptions: PostgresOptions = {}): Promise<{ db: DbClient; applied: string[] }> {
   if (env.DATABASE_DIALECT === 'postgres') {
-    const pg = new PgClient(env.DATABASE_URL, { ssl: env.DATABASE_SSL ?? true });
+    const pg = new PgClient(env.DATABASE_URL, { ...pgOptions, ssl: env.DATABASE_SSL ?? true });
     try {
       if (env.DB_AUTO_MIGRATE) {
         const applied = await migratePostgres(pg);

@@ -5,6 +5,7 @@ export interface ResendConfig {
   from: string;
   /** External delivery must only be constructed in a separately approved execution environment. */
   enabled: boolean;
+  timeoutMs?: number;
 }
 
 /**
@@ -41,7 +42,7 @@ export class ResendEmailProvider implements EmailProvider {
         html: message.html,
         text: message.text,
       }),
-      signal: AbortSignal.timeout(10_000),
+      signal: AbortSignal.timeout(this.config.timeoutMs ?? 10_000),
     });
     if (!response.ok) {
       // No response body: it might contain sensitive provider-side metadata.

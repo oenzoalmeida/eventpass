@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { FastifyInstance } from 'fastify';
 import { buildApp } from './app.js';
 import { loadEnv } from './env.js';
@@ -274,7 +274,9 @@ describePg('PostgreSQL (dialect do Neon)', () => {
     expect(csv.statusCode).toBe(200);
     expect(csv.body).toContain('bruno@exemplo.test');
   });
-  it('supports encrypted ticket recovery on disposable PostgreSQL', async () => {
+  it('supports encrypted recovery and check-in with legacy bigint registration IDs', async () => {
+    await db.run('ALTER TABLE registrations ALTER COLUMN id TYPE bigint');
+    await db.run('ALTER TABLE admins ALTER COLUMN id TYPE bigint');
     const { randomBytes } = await import('node:crypto');
     const { createPublishedEvent, register } = await import('./test-utils.js');
     const { decryptEmailPayload, decodeEmailKey } = await import('./lib/email/crypto.js');
@@ -290,6 +292,14 @@ describePg('PostgreSQL (dialect do Neon)', () => {
       const ev = await createPublishedEvent(enabledApp, authCookie);
       const registered = await register(enabledApp, ev.slug, 'Ana', 'ana@exemplo.test');
       expect(registered.statusCode).toBe(201);
+      const { processEmailBatch } = await import('./scripts/email-worker.js');
+      const http = vi.fn(async () => new Response('{"id":"mock"}', { status: 200 }));
+      vi.stubGlobal('fetch', http);
+      try {
+        expect(await processEmailBatch({ ...emailEnv, DATABASE_DIALECT: 'postgres', DATABASE_URL: url!, DATABASE_SSL: false, DB_AUTO_MIGRATE: false, EMAIL_FROM: 'test@example.test', RESEND_API_KEY: 'test-only' }, 1, true)).toBe(1);
+        expect(http).toHaveBeenCalledTimes(1);
+        expect(await db.get('SELECT status,payload_ciphertext FROM email_outbox')).toMatchObject({ status: 'sent', payload_ciphertext: '' });
+      } finally { vi.unstubAllGlobals(); }
       const before = registered.json().ticketToken;
       const requested = await enabledApp.inject({
         method: 'POST', url: '/api/public/tickets/recovery/request',
@@ -314,6 +324,10 @@ describePg('PostgreSQL (dialect do Neon)', () => {
       );
       expect(stored?.qr_token_hash).toBe(hashTicketToken(used.json().ticketToken));
       expect((await enabledApp.inject({ method: 'GET', url: '/api/public/tickets/' + before })).statusCode).toBe(404);
+      const next = used.json().ticketToken;
+      const checkin = await enabledApp.inject({ method: 'POST', url: '/api/admin/events/' + ev.id + '/checkins', headers: { cookie: authCookie }, payload: { token: next } });
+      expect(checkin.statusCode).toBe(200);
+      expect((await enabledApp.inject({ method: 'POST', url: '/api/admin/events/' + ev.id + '/checkins', headers: { cookie: authCookie }, payload: { token: next } })).json().alreadyCheckedIn).toBe(true);
     } finally {
       await enabledApp.close();
     }
@@ -344,6 +358,12 @@ describePg('PostgreSQL (dialect do Neon)', () => {
       "SELECT COUNT(*)::text AS n FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ('email_outbox','ticket_recovery_requests')",
     ))?.n).toBe('2');
     expect(await migratePostgres(db)).toEqual([]);
+  });
+
+  it('enforces scheduled PostgreSQL query timeout', async () => {
+    const bounded = new PgClient(url!, { ssl: false, prepare: false, statementTimeoutMs: 30, lockTimeoutMs: 30, maxConnections: 1 });
+    try { await expect(bounded.get('SELECT pg_sleep(0.2)')).rejects.toMatchObject({ code: '57014' }); }
+    finally { await bounded.close(); }
   });
 
 });
