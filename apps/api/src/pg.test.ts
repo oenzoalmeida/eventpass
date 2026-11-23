@@ -303,4 +303,31 @@ describePg('PostgreSQL (dialect do Neon)', () => {
     }
   });
 
+  it('reconciles legacy Neon migration records without erasing existing administrators', async () => {
+    // Reproduce only the known legacy differences in a disposable CI database.
+    // The real Neon homolog database is never used by this test.
+    await db.run("ALTER TABLE admins DROP COLUMN must_change_password");
+    await db.run("DROP TABLE ticket_recovery_requests");
+    await db.run("DROP TABLE email_outbox");
+    await db.run("DELETE FROM schema_migrations WHERE name IN ('002_password_change.sql','003_email_outbox.sql','004_ticket_recovery.sql')");
+    await db.run("INSERT INTO schema_migrations(name) VALUES ('002_serverless.sql'), ('003_point_ownership.sql')");
+    const before = await db.get<{ email: string }>("SELECT email FROM admins WHERE email = ?", [TEST_ADMIN.email]);
+    expect(before?.email).toBe(TEST_ADMIN.email);
+
+    const applied = await migratePostgres(db);
+    expect(applied).toEqual(['002_password_change.sql', '003_email_outbox.sql', '004_ticket_recovery.sql']);
+    const migrations = (await db.all<{ name: string }>('SELECT name FROM schema_migrations')).map((m) => m.name);
+    expect(migrations).toContain('002_serverless.sql');
+    expect(migrations).toContain('003_point_ownership.sql');
+    expect(migrations).toContain('004_ticket_recovery.sql');
+    const admin = await db.get<{ email: string; must_change_password: number }>(
+      'SELECT email, must_change_password FROM admins WHERE email = ?', [TEST_ADMIN.email],
+    );
+    expect(admin).toMatchObject({ email: TEST_ADMIN.email, must_change_password: 0 });
+    expect((await db.get<{ n: string }>(
+      "SELECT COUNT(*)::text AS n FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ('email_outbox','ticket_recovery_requests')",
+    ))?.n).toBe('2');
+    expect(await migratePostgres(db)).toEqual([]);
+  });
+
 });
