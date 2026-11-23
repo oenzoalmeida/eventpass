@@ -1,4 +1,4 @@
-# EventPass, ensaio de 23/nov/2026 (em andamento)
+# EventPass, ensaio técnico de 23/nov/2026
 
 ## Base e limites
 
@@ -27,14 +27,42 @@ Site e7bc4548-6a98-4d4a-b9ab-ca4929f719d1, incomparable-panda-7984de, equipe oen
 
 Free, período 25/out a 24/nov, créditos normais esgotados. 28,2/30 créditos operacionais restantes até 24/nov, sites permanecem online, mas novos deploys publicados e Agent Runners pausados. Não presume necessidade de upgrade. Não houve tentativa de publicar.
 
-Documentação oficial confirma cron UTC, 30s por execução e execução automática apenas em deploy publicado, não previews. Fonte: https://docs.netlify.com/build/functions/scheduled-functions/ . O lote de 2 não constitui, sozinho, prova do prazo total em caso de conexão lenta/timeout. Verificação adicional ainda pendente.
+Documentação oficial confirma cron UTC, 30s por execução e execução automática apenas em deploy publicado, não previews. Fonte: https://docs.netlify.com/build/functions/scheduled-functions/ . Scheduler reduzido a1job; timeout de conexão3s, statement/lock1s, provider5s, guarda antes de envio15s. Testes PostgreSQL locais validaram worker agendado com transporte simulado e timeout de consulta; adapter aborta transporte em teste. Isso reduz risco, não prova duração em infraestrutura Netlify real. Retenção movida para comando explícito separado sem envio; ainda precisa execução diária operacional autorizada. Nenhum cron de manutenção instalado.
 
 ## Resend
 
 Sem sessão ou credencial específica disponível. Login GitHub pede novo OAuth para leitura de e-mails; não autorizado nesta rodada. Domínios, DNS, remetente e chaves da conta não verificados. Nenhum envio. Limite gratuito público consultado: 3.000/mês, 100/dia, https://resend.com/pricing . Destinatário simulado de teste do provedor não é prova de entrega em caixa real. Entrega real depende de acesso, remetente e autorização expressa de destinatário controlado.
 
-## Próximas verificações
+## Testes locais finais e correções adicionais
 
-- Exercitar orçamento temporal/worker, E2E legado bigint e restauração local; revisão final de privacidade e visual.
-- Confirmar integrações automáticas externas antes de qualquer push. Há apps GitHub Vercel, Render e Northflank instalados; não foi presumida ausência de deploys.
-- Versionar correções e preparar texto de PR para revisão, sem merge.
+- Node22.23.5. PostgreSQL14.24 descartável. Não confundir com PostgreSQL17 do Neon.
+- npm ci realizado; typecheck, lint, build e diff --check aprovados.
+- API100 testes aprovados; web22 aprovados. Os10 testes PostgreSQL não são executados por npm test sem ambiente dedicado; foram executados separadamente e os10 passaram.
+- API HTTP empacotada com PostgreSQL:30/30. Dump/restore da fixture com1admin,1evento,3inscrições e4migrações, seguido de30/30 HTTP no destino restaurado. Sem backup/restauração de dados reais.
+- Worker real com HTTP simulado: renderiza, entrega uma vez, limpa ciphertext, retry de503 e bloqueio de inscrição cancelada. PostgreSQL inclui caminho agendado, bigint, rotação e check-in idempotente.
+- Concorrência SQLite reproduziu BEGIN aninhado ao executar duas claims na mesma conexão. Regressão falhou antes e passou com fila de transações; liberação da fila após rollback também verificada.
+- Logger de erro inesperado e limpeza de sessão não emite mais exceção bruta; regressão verifica ausência do conteúdo privado da exceção.
+- Inspeção de pixels: home/login desktop, recuperação mobile390px, confirmação React Email desktop e recuperação React Email mobile. Sem alteração de estilos globais, identidade visual ou componentes existentes.
+- Auditoria npm runtime:0vulnerabilidades.12moderadas continuam apenas na cadeia de ferramentas Netlify de desenvolvimento; não aplicar downgrade forçado sem avaliar.
+
+## Gatilhos remotos e versionamento
+
+A base está16commits à frente e0atrás da main observada. CI remoto aprovado continua relativo à base510ba86, não aos commits locais desta rodada. Nenhum PR aberto encontrado na consulta atual.
+
+Vercel possui projeto eventpass-homolog com o repositório conectado, deploy Preview da branch de e-mail e política de build Automatic. Build npm run build, output apps/web/dist, install npm ci, Node24.x. Variáveis DATABASE_URL,WEB_ORIGIN,COOKIE_SECURE somente no escopo Production. Nenhum valor revelado. Push não é operação neutra: pode disparar preview. Publicação remota retida até isolar gatilho/ambiente e resolver autenticação específica sem reutilizar credenciais de outros projetos. Nenhuma configuração externa foi alterada.
+
+- https://vercel.com/tech-lead1/eventpass-homolog/settings/git
+- https://vercel.com/tech-lead1/eventpass-homolog/settings/build-and-deployment
+- https://vercel.com/tech-lead1/eventpass-homolog/settings/environment-variables
+
+Workflow Netlify no repositório só dispara push na feat/netlify-neon-homolog ou workflow_dispatch; CI dispara main,feat/email-notification-foundation e PR. Apps Render/Northflank instalados no GitHub não foram tratados como prova de projeto EventPass ativo. Não há garantia de ausência de todos os consumidores Git externos.
+
+## Dependências que permanecem
+
+1. API contra a cópia Neon requer conexão pelo canal seguro, vinculada exclusivamente a br-floral-union-b86d5tmd antes da expiração. DDL real passou, mas API Neon não foi executada. Não executar suíte destrutiva PG_TEST na cópia compartilhada.
+2. Resend requer acesso/novo OAuth aprovado ou credencial específica, domínio/DNS verificados ou alternativa restrita de teste, destinatário controlado e autorização de envio. Nenhum aceite HTTP ou entrega real foi produzido.
+3. Deploy Netlify depende de capacidade disponível e aprovação específica. Tempo de execução, logs de retenção, proteção dos previews e conexão pooler precisam ser revalidados no ambiente de destino antes da ativação.
+4. PR está preparado em arquivo para revisão, não publicado. Push aguarda caminho seguro que não cause deploy indevido; autenticação não elimina esse risco.
+5. Não foi emitida certificação LGPD. Retenção, acesso, base legal, políticas do controlador e processamento pelos fornecedores exigem revisão operacional. Endereços ficam em claro na outbox por necessidade de envio; payloads temporários são cifrados e apagados no estado terminal.
+
+Runbook separado: EMAIL-RECOVERY-RUNBOOK.md. Plano de teste real e alternativa gratuita: RESEND-CONTROLLED-TEST.md. Nenhuma pendência acima foi apresentada como concluída.
