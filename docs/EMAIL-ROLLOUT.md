@@ -35,3 +35,11 @@ Não usar timers systemd nem processos persistentes em Netlify Functions. Um wor
 Nunca enviar e-mails do ambiente de CI com credenciais reais. Não publicar chaves, dados de destinatários, links de ingresso ou tokens em logs, repositório e artefatos de testes.
 
 O Resend armazena chaves de idempotência por aproximadamente 24 horas. A outbox mantém chave de envio estável, mas a entrega exatamente uma vez não é garantida quando há falha de rede após aceite do provedor ou retomada muito tardia.
+
+## Netlify Scheduled Function (implemented, disabled by default)
+
+The feature branch now includes `apps/api/netlify/functions/email-queue.ts`, which Netlify builds as a scheduled function with cron `*/5 * * * *` (UTC). It calls the same bounded worker used by the Oracle CLI, processing up to two queued jobs per invocation. The handler returns without opening a database if `EMAIL_ENABLED` is not explicitly `true`.
+
+Netlify's official documentation states scheduled functions run automatically only on **published deploys**, not on previews, and have a 30-second execution limit. The batch size is deliberately small; actual sending throughput, provider quotas and billing must be checked before rollout. The worker requires PostgreSQL and a complete, migrated schema. Branch deploys do not constitute an automatic scheduled-delivery test.
+
+No real Resend credentials were configured or used. Enabling the feature requires verifying DNS, the authorized domain, rate limits, billing, retry visibility and credentials in Netlify's protected environment settings. Do not place secrets in GitHub Actions or source files.
