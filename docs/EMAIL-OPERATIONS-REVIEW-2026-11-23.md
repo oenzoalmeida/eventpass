@@ -1,4 +1,4 @@
-EVENTPASS, revisão de continuidade23nov2026 10:27
+EVENTPASS, revisão de continuidade de23nov2026, estado atual após auditoria11:11
 
 Preservação
 Backup git bundle restrito criado antes das alterações, com as7revisões até23a1df5 e todas as referências. git bundle verify aprovado. Patchv3 preservado e checksum conferido; aplicação em worktree independente já demonstrou árvore idêntica.
@@ -29,3 +29,14 @@ Cota oficial adicional: https://resend.com/docs/api-reference/rate-limit e https
 Atualização10:39Neon: migration005 aplicada somente à cópia br-floral-union-b86d5tmd, comBEGIN/COMMITeguarda0admins/participantes/inscrições. Confirmados7nomesdemigraçãoe0linhasdeorçamento. SchemaNeon17atualizado,nãoháAPIEventPasscontraNeon. Fonte https://console.neon.tech/app/projects/little-voice-72531404/branches/br-floral-union-b86d5tmd/sql-editor?database=eventpass .
 
 Restauração atual10:42: dumpPGlocal já commanifesto005 e tabelaemail_send_budget, restaurado emdestinodescartávelnovo com1admin,5eventos,15inscrições,5migraçõese0reservas. HTTPempacotado30/30nodestinorestaurado. Somente fixtures. Este ensaio atual substitui o dump v3 de4migrações como evidência de compatibilidade do estado atual.
+
+
+## Inspeção pré-push concluída e auditoria final11:11
+
+GitHub sudo foi aceito após aprovação Mobile do proprietário. Escopos individuais e inventários dos consumidores identificados foram conferidos. Render sem EventPass nos dois workspaces; blitz.cloud sem EventPass na conta única; Base44 sem EventPass no workspace único; Lovable pessoal com dois projetos Passaporte Área51; Northflank, após concessão email-read expressamente aprovada, sem projetos e sem Git provider vinculado na equipe única. Nenhum projeto alheio foi aberto ou alterado nessa inspeção final. Nenhuma instalação ou atualização de permissões foi modificada. Fontes e limites completos: GITHUB-PUBLICATION-ACCESS.md.
+
+Revalidação no código final, Node22.23.5: typecheck, lint e build aprovados; API108 e web22 passaram; PostgreSQL12 passaram em banco local novo exclusivo da auditoria. A suíte normal pula12PG, exercidos separadamente. Audit runtime0. Node24 e bundle real já validados no mesmo código. Depois disso só documentação mudou, sem motivo para repetir testes de código.
+
+Integridade: git fsck, diff --check e verificação do bundle aprovados; patch aplicado em worktree independente com árvore idêntica; sete commits originais preservados; nenhum diff em apps/web. Padrões comuns de chaves/tokens/URI PostgreSQL externa:0 ocorrências no diff, verificação por padrões e não garantia absoluta.
+
+Não concluído: push/CI remoto aguardam aprovação específica da credencial GitHub exclusiva EventPass,1dia,ContentsRW+WorkflowsWrite,cofre e revogação; PR permanece proposta não publicada. API EventPass contra Neon aguarda transporte seguro da conexão da cópia indicada, sem reutilizar original ou repetir coleta. Resend real depende de acesso/saldo global/DNS/remetente/destinatário controlado e autorização de envio. Netlify real continua sem publicação/cron observado, com créditos gratuitos esgotados e deploys pausados na inspeção. Retenção preparada não equivale a periodicidade operacional homologada. Nenhuma produção, AWS, banco ativo, envio real ou custo alterado.
