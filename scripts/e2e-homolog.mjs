@@ -6,13 +6,22 @@
  * ranking → logout, além de checagens de segurança (cookie, 401/415).
  *
  * Uso:
- *   BASE_URL=https://... node scripts/e2e-homolog.mjs
+ *   BASE_URL=http://localhost:8877 node scripts/e2e-homolog.mjs
+ *   (somente loopback; host remoto é recusado, sem flag de exceção)
  *   ADMIN_EMAIL=... ADMIN_PASSWORD=...   (credenciais do admin de teste)
  *
  * Sem ADMIN_* usa admin.homolog@test.local / Homolog-Teste-2026-Segura
  * (o admin fictício criado pelo procedimento de homologação).
  */
-const BASE = process.env.BASE_URL || 'http://localhost:8877';
+import { assertLocalTarget } from './lib/assert-local-target.mjs';
+
+let BASE;
+try {
+  BASE = assertLocalTarget(process.env.BASE_URL || 'http://localhost:8877');
+} catch (e) {
+  console.error(e.message);
+  process.exit(2);
+}
 const ADMIN = {
   email: process.env.ADMIN_EMAIL || 'admin.homolog@test.local',
   password: process.env.ADMIN_PASSWORD || 'Homolog-Teste-2026-Segura',
