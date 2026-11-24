@@ -52,7 +52,7 @@ export function HomePage() {
             <EmptyState title="Nenhum evento aberto no momento">
               <p>Volte em breve!</p>
               <p className="mt-3">
-                Quer conhecer a jornada?{' '}
+                Quer conhecer o funcionamento do EventPass?{' '}
                 <Link href="/demo" className="text-primary underline">
                   Veja uma demonstração com dados fictícios
                 </Link>

@@ -20,7 +20,7 @@ A página `/demo` permite conhecer o funcionamento do sistema mesmo quando não 
 - Lista de inscrições com busca e cancelamento (libera a vaga)
 - Check-in pela câmera do celular ou pelo código do ingresso, com aviso de leitura repetida
 - Relatório por evento: ocupação, taxa de presença, pontos e check-ins por hora
-- Exportação de inscrições em CSV (abre direto no Excel em português)
+- Exportação de inscrições em CSV (compatível com o Excel em português)
 
 **Participantes**
 
