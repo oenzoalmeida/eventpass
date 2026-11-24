@@ -1,14 +1,14 @@
 # EventPass
 
-Sistema web para organizar eventos, inscrições, controle de presença e gamificação de participantes.
+O EventPass permite publicar eventos, receber inscrições e registrar a presença dos participantes.
 
 Organizadores publicam eventos, acompanham inscrições, validam presença por QR Code e exportam relatórios. Participantes se inscrevem em páginas públicas, recebem um ingresso com QR Code e acumulam pontos **somente após um check-in válido**.
 
 ## Demonstração
 
-Produção: <https://eventpass.3.149.24.102.sslip.io> — área pública com inscrições e ranking de participação; painel de organizadores em `/admin`.
+**Produção:** <https://eventpass.3.149.24.102.sslip.io>. A área pública reúne inscrições e ranking de participantes. O painel de organizadores fica em `/admin`.
 
-**Não há eventos abertos no momento?** A página `/demo` mostra a jornada completa (evento → inscrição → ingresso → check-in → ranking) com dados fictícios gerados no navegador, sem criar nada no ambiente real.
+A página `/demo` permite conhecer o funcionamento do sistema mesmo quando não há eventos abertos. Ela simula a inscrição, a emissão do ingresso, o check-in e o ranking com dados fictícios no navegador, sem modificar os registros reais.
 
 ## Funcionalidades
 
@@ -85,7 +85,7 @@ API_HOST=0.0.0.0 COOKIE_SECURE=true npm start
 Em produção a API serve o frontend compilado (`apps/web/dist`), então tudo roda em um único processo. Coloque um proxy com HTTPS na frente (Nginx, Caddy ou o da sua hospedagem). Isso funciona em qualquer servidor Node, inclusive no Replit.
 
 - **HTTPS é obrigatório** para o cookie de sessão (`COOKIE_SECURE=true`) e para a câmera no check-in, que os navegadores só liberam em conexão segura.
-- Faça **backup** regular do banco: `npm run db:backup` cria um snapshot consistente com `VACUUM INTO` (seguro com a API no ar) e valida com `integrity_check`. **Restauração**: pare a API, substitua o arquivo do banco (`DATABASE_URL`) pelo backup e reinicie — as migrações pendentes rodam na inicialização. Veja opções de hospedagem em [docs/HOSPEDAGEM.md](docs/HOSPEDAGEM.md).
+- Faça **backup** regular do banco: `npm run db:backup` cria um snapshot consistente com `VACUUM INTO` (seguro com a API no ar) e valida com `integrity_check`. **Restauração:** pare a API, substitua o arquivo do banco (`DATABASE_URL`) pelo backup e reinicie. As migrações pendentes são executadas na inicialização. Veja opções de hospedagem em [docs/HOSPEDAGEM.md](docs/HOSPEDAGEM.md).
 - Para criar o administrador sem interação, defina `ADMIN_EMAIL`, `ADMIN_NAME` e `ADMIN_PASSWORD` antes de `npm run admin:create`.
 
 ### Variáveis de ambiente
