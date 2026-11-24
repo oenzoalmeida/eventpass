@@ -126,7 +126,7 @@ export function DemoPage() {
         <Etapa n={3} titulo="Guarde o ingresso com QR Code">
           <Card className="text-center">
             <div className="flex items-start justify-between gap-3 text-left">
-              <h3 className="text-base font-semibold">Ingresso — {evento.titulo}</h3>
+              <h3 className="text-base font-semibold">Ingresso: {evento.titulo}</h3>
               <Badge tone="warning">Fictício</Badge>
             </div>
             <p className="mt-1 text-left text-sm text-fg-muted">{evento.quando}</p>
